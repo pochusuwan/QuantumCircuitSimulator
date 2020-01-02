@@ -4,6 +4,19 @@ import Gate_control from "./Gate-control.png";
 import Gate_X from "./Gate-X.png";
 import Gate_Y from "./Gate-Y.png";
 import Gate_Z from "./Gate-Z.png";
+import Gate_H from "./Gate-H.png";
+import Gate_X_quarter from "./Gate-X-quarter.png";
+import Gate_Y_quarter from "./Gate-Y-quarter.png";
+import Gate_Z_quarter from "./Gate-Z-quarter.png";
+import Gate_X_quarter_n from "./Gate-X-quarter-negative.png";
+import Gate_Y_quarter_n from "./Gate-Y-quarter-negative.png";
+import Gate_Z_quarter_n from "./Gate-Z-quarter-negative.png";
+import Gate_X_eighth from "./Gate-X-eighth.png";
+import Gate_Y_eighth from "./Gate-Y-eighth.png";
+import Gate_Z_eighth from "./Gate-Z-eighth.png";
+import Gate_X_eighth_n from "./Gate-X-eighth-negative.png";
+import Gate_Y_eighth_n from "./Gate-Y-eighth-negative.png";
+import Gate_Z_eighth_n from "./Gate-Z-eighth-negative.png";
 
 const gateTypeToImg = gateType => {
   switch (gateType) {
@@ -13,6 +26,32 @@ const gateTypeToImg = gateType => {
       return Gate_Y;
     case "Z":
       return Gate_Z;
+    case "H":
+      return Gate_H;
+    case "XQ":
+      return Gate_X_quarter;
+    case "XQN":
+      return Gate_X_quarter_n;
+    case "YQ":
+      return Gate_Y_quarter;
+    case "YQN":
+      return Gate_Y_quarter_n;
+    case "ZQ":
+      return Gate_Z_quarter;
+    case "ZQN":
+      return Gate_Z_quarter_n;
+    case "XE":
+      return Gate_X_eighth;
+    case "XEN":
+      return Gate_X_eighth_n;
+    case "YE":
+      return Gate_Y_eighth;
+    case "YEN":
+      return Gate_Y_eighth_n;
+    case "ZE":
+      return Gate_Z_eighth;
+    case "ZEN":
+      return Gate_Z_eighth_n;
     case "C":
       return Gate_control;
     default:
@@ -50,7 +89,11 @@ class Gate extends React.Component {
         className="Gate"
         draggable="false"
         alt={this.props.gateType}
-        style={{ cursor: this.props.grabbedGate != null ? "move" : "grab" }}
+        style={{
+          cursor: this.props.grabbedGate != null ? "move" : "grab",
+          marginLeft: this.props.wireIndex == null ? 0 : 10,
+          marginRight: this.props.wireIndex == null ? 0 : 10
+        }}
         onMouseDown={event => {
           this.props.onMouseDown(
             event.pageX,
@@ -74,11 +117,7 @@ export default class App extends React.Component {
       mouseY: 0,
       grabX: 0,
       grabY: 0,
-      circuit: [
-        ["X", "Y", "S", "Z"],
-        ["X", "Y", "Z"],
-        []
-      ]
+      circuit: [["X", "Y", "S", "Z"], ["X", "Y", "Z"], []]
     };
     this.circuitRef = React.createRef();
   }
@@ -150,7 +189,7 @@ export default class App extends React.Component {
     var indexes = this.getClosestWireGate(event.pageX, event.pageY);
     console.log(indexes);
     if (
-      this.state.grabbedGate != null && 
+      this.state.grabbedGate != null &&
       indexes[0] != null &&
       indexes[1] != null &&
       indexes[0] < this.state.circuit.length
@@ -202,11 +241,11 @@ export default class App extends React.Component {
         }
       }
     }
-    
+
     var newCircuit2 = [];
     for (var j = 0; j < newCircuit.length; j++) {
       if (!isEmpty[j]) {
-        newCircuit2.push(newCircuit[j])
+        newCircuit2.push(newCircuit[j]);
       }
     }
     newCircuit2.push([]);
@@ -236,11 +275,7 @@ export default class App extends React.Component {
 
   clearCircuit = () => {
     this.setState({
-      circuit: [
-        ["X", "Y", "S", "Z"],
-        ["X", "Y", "Z", "S", "S"],
-        []
-      ]
+      circuit: [["X", "Y", "S", "Z"], ["X", "Y", "Z", "S", "S"], []]
     });
   };
 
@@ -263,26 +298,41 @@ export default class App extends React.Component {
           </div>
           <div className="Toolbar-section">
             <div>Half Turns</div>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="Y"></Gate>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="Z"></Gate>
+            <div className="Toolbar-gate-container">
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="Y"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="Z"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="H"></Gate>
+            </div>
           </div>
           <div className="Toolbar-section">
             <div>Quarter Turns</div>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
+            <div className="Toolbar-gate-container">
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQ"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQ"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQ"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQN"></Gate>
+            </div>
           </div>
           <div className="Toolbar-section">
             <div>Eighth Turns</div>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
+            <div className="Toolbar-gate-container">
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XE"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YE"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZE"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XEN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YEN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZEN"></Gate>
+            </div>
           </div>
         </div>
         <div className="Circuit" ref={this.circuitRef}>
           {this.state.circuit.map((gates, wireIndex) => {
             return (
               <div className="Wire-container" key={wireIndex}>
-                <QubitLine dash={wireIndex == this.state.circuit.length-1}/>
+                <QubitLine dash={wireIndex == this.state.circuit.length - 1} />
                 <div className="Wire">
                   {gates.map((gateType, gateIndex) => {
                     return (

@@ -29,8 +29,26 @@
 .Toolbar-section {
   margin-left: 10px;
   margin-right: 10px;
+  width: fit-content;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
+
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+
+.Toolbar-gate-container {
+  max-height: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+  flex-direction: column;
+  align-content: center;
   align-items: center;
 
   -moz-user-select: none; /* Firefox */
@@ -44,8 +62,6 @@
 .Gate {
   width: 40px;
   height: 40px;
-  margin-left: 10px;
-  margin-right: 10px;
   z-index: 1;
 
   -moz-user-select: none; /* Firefox */
