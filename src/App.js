@@ -82,10 +82,6 @@ export default class App extends React.Component {
     this.circuit[1].push("S");
   }
 
-  onMouseUp = event => {
-    this.setState({ grabbedGate: null });
-  };
-
   getWireYPos = wireIndex => {
     var rect = this.circuitRef.current.children[
       wireIndex
@@ -100,7 +96,7 @@ export default class App extends React.Component {
   getClosestWireGate = (mouseX, mouseY) => {
     var closestWireIndex = null;
     var vDistMin = 500;
-    for (var i=0; i<this.circuitRef.current.children.length; i++) {
+    for (var i = 0; i < this.circuitRef.current.children.length; i++) {
       var vDist = Math.abs(mouseY - this.getWireYPos(i));
       if (vDistMin > vDist && vDist < 40) {
         vDistMin = vDist;
@@ -147,6 +143,53 @@ export default class App extends React.Component {
       this.setState({ grabX: mouseX - 20 });
       this.setState({ grabY: mouseY - 20 });
     }
+  };
+
+  onMouseUp = event => {
+    var indexes = this.getClosestWireGate(event.pageX, event.pageY);
+    console.log(indexes);
+    if (
+      indexes[0] != null &&
+      indexes[1] != null &&
+      indexes[0] < this.circuit.length
+    ) {
+      var gateIndex = Math.floor(indexes[1] / 2);
+      while (this.circuit[indexes[0]].length <= gateIndex) {
+        this.circuit[indexes[0]].push("S");
+      }
+      if (this.circuit[indexes[0]][gateIndex] == "S") {
+        this.circuit[indexes[0]][gateIndex] = this.state.grabbedGate;
+      } else {
+        this.circuit[indexes[0]].splice(gateIndex, 0, this.state.grabbedGate);
+      }
+    }
+
+    var newCircuit = [];
+    var maxLength = 0;
+    for (var i = 0; i < this.circuit.length; i++) {
+      newCircuit.push([]);
+      if (maxLength < this.circuit[i].length) {
+        maxLength = this.circuit[i].length;
+      }
+    }
+    for (var i = 0; i < maxLength; i++) {
+      var allSpace = true;
+      for (var j = 0; j < this.circuit.length; j++) {
+        if (i < this.circuit[j].length && this.circuit[j][i] != "S") {
+          allSpace = false;
+          break;
+        }
+      }
+      if (!allSpace) {
+        for (var j = 0; j < this.circuit.length; j++) {
+          if (i < this.circuit[j].length) {
+            newCircuit[j].push(this.circuit[j][i]);
+          }
+        }
+      }
+    }
+    this.circuit = newCircuit;
+    this.setState({ grabbedGate: null });
   };
 
   onMouseMove = event => {
