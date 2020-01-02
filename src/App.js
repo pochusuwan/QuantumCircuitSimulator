@@ -43,13 +43,15 @@ class Gate extends React.Component {
         draggable="false"
         alt={this.props.gateType}
         style={{ cursor: this.props.grabbedGate != null ? "move" : "grab" }}
-        onMouseDown={() =>
+        onMouseDown={event => {
           this.props.onMouseDown(
+            event.pageX,
+            event.pageY,
             this.props.gateType,
             this.props.wireIndex,
             this.props.gateIndex
-          )
-        }
+          );
+        }}
       />
     );
   }
@@ -61,7 +63,9 @@ export default class App extends React.Component {
     this.state = {
       grabbedGate: null,
       mouseX: 0,
-      mouseY: 0
+      mouseY: 0,
+      grabX: 0,
+      grabY: 0
     };
     this.circuitRef = React.createRef();
     this.circuit = [];
@@ -74,23 +78,94 @@ export default class App extends React.Component {
     this.circuit[1].push("X");
     this.circuit[1].push("Y");
     this.circuit[1].push("Z");
+    this.circuit[1].push("S");
+    this.circuit[1].push("S");
   }
 
   onMouseUp = event => {
     this.setState({ grabbedGate: null });
   };
 
+  getWireYPos = wireIndex => {
+    var rect = this.circuitRef.current.children[
+      wireIndex
+    ].getBoundingClientRect();
+    return rect.y + rect.height / 2;
+  };
+
+  getGateSlotXPos = gateSlotIndex => {
+    return gateSlotIndex * 30 + 60 + 20;
+  };
+
+  getClosestWireGate = (mouseX, mouseY) => {
+    var closestWireIndex = null;
+    var vDistMin = 500;
+    for (var i=0; i<this.circuitRef.current.children.length; i++) {
+      var vDist = Math.abs(mouseY - this.getWireYPos(i));
+      if (vDistMin > vDist && vDist < 40) {
+        vDistMin = vDist;
+        closestWireIndex = i;
+      }
+    }
+
+    if (closestWireIndex != null) {
+      var wireXStart =
+        this.circuitRef.current.children[
+          closestWireIndex
+        ].getBoundingClientRect().x + 60;
+      var closestGateSlotIndex = Math.max(
+        Math.round((mouseX - wireXStart) / 30),
+        0
+      );
+      var gateIndex = Math.floor((closestGateSlotIndex - 1) / 2);
+      if (
+        closestGateSlotIndex % 2 == 1 &&
+        gateIndex < this.circuit[closestWireIndex].length &&
+        this.circuit[closestWireIndex][gateIndex] != undefined &&
+        this.circuit[closestWireIndex][gateIndex] != "S"
+      ) {
+        var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
+        if (occupiedSlotX > mouseX) {
+          return [closestWireIndex, closestGateSlotIndex - 1];
+        } else {
+          return [closestWireIndex, closestGateSlotIndex + 1];
+        }
+      } else {
+        return [closestWireIndex, closestGateSlotIndex];
+      }
+    } else {
+      return [null, null];
+    }
+  };
+
+  setGrabPosition = (mouseX, mouseY) => {
+    var indexes = this.getClosestWireGate(mouseX, mouseY);
+    if (indexes[0] != null && indexes[1] != null) {
+      this.setState({ grabX: this.getGateSlotXPos(indexes[1]) - 20 });
+      this.setState({ grabY: this.getWireYPos(indexes[0]) - 20 });
+    } else {
+      this.setState({ grabX: mouseX - 20 });
+      this.setState({ grabY: mouseY - 20 });
+    }
+  };
+
   onMouseMove = event => {
     this.setState({ mouseX: event.pageX });
     this.setState({ mouseY: event.pageY });
+    if (this.state.grabbedGate != null) {
+      this.setGrabPosition(event.pageX, event.pageY);
+    }
   };
 
-  gateOnMouseDown = (gateType, wireIndex, gateIndex) => {
-    console.log(gateType + " " + wireIndex + " " + gateIndex);
+  gateOnMouseDown = (mouseX, mouseY, gateType, wireIndex, gateIndex) => {
     this.setState({ grabbedGate: gateType });
-    if (wireIndex < this.circuit.length && gateIndex < this.circuit[wireIndex].length) {
+    if (
+      wireIndex < this.circuit.length &&
+      gateIndex < this.circuit[wireIndex].length
+    ) {
       this.circuit[wireIndex][gateIndex] = "S";
     }
+    this.setGrabPosition(mouseX, mouseY);
   };
 
   render() {
@@ -157,8 +232,8 @@ export default class App extends React.Component {
             src={gateTypeToImg(this.state.grabbedGate)}
             className="Gate-grabbed"
             style={{
-              top: this.state.mouseY - 20,
-              left: this.state.mouseX - 20
+              top: this.state.grabY,
+              left: this.state.grabX
             }}
           />
         ) : null}
