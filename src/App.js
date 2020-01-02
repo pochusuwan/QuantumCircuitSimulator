@@ -25,7 +25,15 @@ class QubitLine extends React.Component {
     return (
       <div className="Line-container">
         <div className="Qubit-initial">|0></div>
-        <div className="Line" />
+        <div
+          className="Line"
+          style={{
+            borderStyle: this.props.dash == true ? "dashed" : "solid",
+            borderWidth: 1,
+            borderBottomWidth: 0,
+            borderRadius: 1
+          }}
+        ></div>
       </div>
     );
   }
@@ -65,21 +73,14 @@ export default class App extends React.Component {
       mouseX: 0,
       mouseY: 0,
       grabX: 0,
-      grabY: 0
+      grabY: 0,
+      circuit: [
+        ["X", "Y", "S", "Z"],
+        ["X", "Y", "Z"],
+        []
+      ]
     };
     this.circuitRef = React.createRef();
-    this.circuit = [];
-    this.circuit.push([]);
-    this.circuit[0].push("X");
-    this.circuit[0].push("Y");
-    this.circuit[0].push("S");
-    this.circuit[0].push("Z");
-    this.circuit.push([]);
-    this.circuit[1].push("X");
-    this.circuit[1].push("Y");
-    this.circuit[1].push("Z");
-    this.circuit[1].push("S");
-    this.circuit[1].push("S");
   }
 
   getWireYPos = wireIndex => {
@@ -116,9 +117,9 @@ export default class App extends React.Component {
       var gateIndex = Math.floor((closestGateSlotIndex - 1) / 2);
       if (
         closestGateSlotIndex % 2 == 1 &&
-        gateIndex < this.circuit[closestWireIndex].length &&
-        this.circuit[closestWireIndex][gateIndex] != undefined &&
-        this.circuit[closestWireIndex][gateIndex] != "S"
+        gateIndex < this.state.circuit[closestWireIndex].length &&
+        this.state.circuit[closestWireIndex][gateIndex] != undefined &&
+        this.state.circuit[closestWireIndex][gateIndex] != "S"
       ) {
         var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
         if (occupiedSlotX > mouseX) {
@@ -149,46 +150,68 @@ export default class App extends React.Component {
     var indexes = this.getClosestWireGate(event.pageX, event.pageY);
     console.log(indexes);
     if (
+      this.state.grabbedGate != null && 
       indexes[0] != null &&
       indexes[1] != null &&
-      indexes[0] < this.circuit.length
+      indexes[0] < this.state.circuit.length
     ) {
       var gateIndex = Math.floor(indexes[1] / 2);
-      while (this.circuit[indexes[0]].length <= gateIndex) {
-        this.circuit[indexes[0]].push("S");
+      while (this.state.circuit[indexes[0]].length <= gateIndex) {
+        this.state.circuit[indexes[0]].push("S");
       }
-      if (this.circuit[indexes[0]][gateIndex] == "S") {
-        this.circuit[indexes[0]][gateIndex] = this.state.grabbedGate;
+      if (this.state.circuit[indexes[0]][gateIndex] == "S") {
+        this.state.circuit[indexes[0]][gateIndex] = this.state.grabbedGate;
       } else {
-        this.circuit[indexes[0]].splice(gateIndex, 0, this.state.grabbedGate);
+        this.state.circuit[indexes[0]].splice(
+          gateIndex,
+          0,
+          this.state.grabbedGate
+        );
       }
     }
 
     var newCircuit = [];
     var maxLength = 0;
-    for (var i = 0; i < this.circuit.length; i++) {
+    var isEmpty = [];
+    for (var i = 0; i < this.state.circuit.length; i++) {
       newCircuit.push([]);
-      if (maxLength < this.circuit[i].length) {
-        maxLength = this.circuit[i].length;
+      if (maxLength < this.state.circuit[i].length) {
+        maxLength = this.state.circuit[i].length;
       }
+      isEmpty.push(true);
     }
     for (var i = 0; i < maxLength; i++) {
       var allSpace = true;
-      for (var j = 0; j < this.circuit.length; j++) {
-        if (i < this.circuit[j].length && this.circuit[j][i] != "S") {
+      for (var j = 0; j < this.state.circuit.length; j++) {
+        if (
+          i < this.state.circuit[j].length &&
+          this.state.circuit[j][i] != "S"
+        ) {
           allSpace = false;
           break;
         }
       }
       if (!allSpace) {
-        for (var j = 0; j < this.circuit.length; j++) {
-          if (i < this.circuit[j].length) {
-            newCircuit[j].push(this.circuit[j][i]);
+        for (var j = 0; j < this.state.circuit.length; j++) {
+          if (i < this.state.circuit[j].length) {
+            if (this.state.circuit[j][i] != "S") {
+              isEmpty[j] = false;
+            }
+            newCircuit[j].push(this.state.circuit[j][i]);
           }
         }
       }
     }
-    this.circuit = newCircuit;
+    
+    var newCircuit2 = [];
+    for (var j = 0; j < newCircuit.length; j++) {
+      if (!isEmpty[j]) {
+        newCircuit2.push(newCircuit[j])
+      }
+    }
+    newCircuit2.push([]);
+
+    this.setState({ circuit: newCircuit2 });
     this.setState({ grabbedGate: null });
   };
 
@@ -203,12 +226,22 @@ export default class App extends React.Component {
   gateOnMouseDown = (mouseX, mouseY, gateType, wireIndex, gateIndex) => {
     this.setState({ grabbedGate: gateType });
     if (
-      wireIndex < this.circuit.length &&
-      gateIndex < this.circuit[wireIndex].length
+      wireIndex < this.state.circuit.length &&
+      gateIndex < this.state.circuit[wireIndex].length
     ) {
-      this.circuit[wireIndex][gateIndex] = "S";
+      this.state.circuit[wireIndex][gateIndex] = "S";
     }
     this.setGrabPosition(mouseX, mouseY);
+  };
+
+  clearCircuit = () => {
+    this.setState({
+      circuit: [
+        ["X", "Y", "S", "Z"],
+        ["X", "Y", "Z", "S", "S"],
+        []
+      ]
+    });
   };
 
   render() {
@@ -221,8 +254,7 @@ export default class App extends React.Component {
         draggable="false"
       >
         <div className="ButtonBar">
-          <button>Clear</button>
-          <button>asd</button>
+          <button onClick={this.clearCircuit}>Clear</button>
         </div>
         <div className="Toolbar">
           <div className="Toolbar-section">
@@ -247,10 +279,10 @@ export default class App extends React.Component {
           </div>
         </div>
         <div className="Circuit" ref={this.circuitRef}>
-          {this.circuit.map((gates, wireIndex) => {
+          {this.state.circuit.map((gates, wireIndex) => {
             return (
               <div className="Wire-container" key={wireIndex}>
-                <QubitLine />
+                <QubitLine dash={wireIndex == this.state.circuit.length-1}/>
                 <div className="Wire">
                   {gates.map((gateType, gateIndex) => {
                     return (
