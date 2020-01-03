@@ -17,6 +17,10 @@ import Gate_Z_eighth from "./Gate-Z-eighth.png";
 import Gate_X_eighth_n from "./Gate-X-eighth-negative.png";
 import Gate_Y_eighth_n from "./Gate-Y-eighth-negative.png";
 import Gate_Z_eighth_n from "./Gate-Z-eighth-negative.png";
+import Measure_Eye from "./Measure-eye.png";
+import Eye from "./eye.png";
+import Complex from "./Complex.js";
+import Matrix from "./Matrix.js";
 
 const gateTypeToImg = gateType => {
   switch (gateType) {
@@ -54,6 +58,8 @@ const gateTypeToImg = gateType => {
       return Gate_Z_eighth_n;
     case "C":
       return Gate_control;
+    case "E":
+      return Measure_Eye;
     default:
       return null;
   }
@@ -123,10 +129,21 @@ export default class App extends React.Component {
         ["X", "Y"],
         ["X", "S"],
         ["Y", "Z"]
-      ]
+      ],
+      eyeArray: ["E", "S", "E"]
     };
     this.circuitRef = React.createRef();
+    this.eyeLineRef = React.createRef();
   }
+
+  getEyeWireYPos = () => {
+    var rect = this.eyeLineRef.current.children[0].getBoundingClientRect();
+    return rect.y + rect.height / 2;
+  };
+
+  getEyeWireXPos = gateSlotIndex => {
+    return gateSlotIndex * 60 + 80 + 20;
+  };
 
   getWireYPos = wireIndex => {
     var rect = this.circuitRef.current.children[
@@ -139,52 +156,72 @@ export default class App extends React.Component {
     return gateSlotIndex * 30 + 80 + 20;
   };
 
-  getClosestWireGate = (mouseX, mouseY) => {
-    var closestWireIndex = null;
-    var vDistMin = 500;
-    for (var i = 0; i < this.circuitRef.current.children.length; i++) {
-      var vDist = Math.abs(mouseY - this.getWireYPos(i));
-      if (vDistMin > vDist && vDist < 40) {
-        vDistMin = vDist;
-        closestWireIndex = i;
-      }
-    }
-
-    if (closestWireIndex != null) {
-      var wireXStart =
-        this.circuitRef.current.children[
-          closestWireIndex
-        ].getBoundingClientRect().x + 60;
-      var closestGateSlotIndex = Math.max(
-        Math.round((mouseX - wireXStart) / 30),
-        0
-      );
-      var gateIndex = Math.floor((closestGateSlotIndex - 1) / 2);
-      if (
-        closestGateSlotIndex % 2 === 1 &&
-        gateIndex < this.state.circuit.length &&
-        closestWireIndex < this.state.circuit[gateIndex].length &&
-        this.state.circuit[gateIndex][closestWireIndex] !== "S"
-      ) {
-        var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
-        if (occupiedSlotX > mouseX) {
-          return [closestWireIndex, closestGateSlotIndex - 1];
-        } else {
-          return [closestWireIndex, closestGateSlotIndex + 1];
-        }
+  getClosestWireGate = (mouseX, mouseY, gateType) => {
+    if (gateType === "E") {
+      var lineYPos = this.getEyeWireYPos();
+      if (Math.abs(mouseY - lineYPos) < 40) {
+        var eyeWireXStart =
+          this.eyeLineRef.current.children[0].getBoundingClientRect().x + 70;
+        var closestEyeSlotIndex = Math.max(
+          Math.round((mouseX - eyeWireXStart) / 60),
+          0
+        );
+        return [0, closestEyeSlotIndex];
       } else {
-        return [closestWireIndex, closestGateSlotIndex];
+        return [null, null];
       }
     } else {
-      return [null, null];
+      var closestWireIndex = null;
+      var vDistMin = 500;
+      for (var i = 0; i < this.circuitRef.current.children.length; i++) {
+        var vDist = Math.abs(mouseY - this.getWireYPos(i));
+        if (vDistMin > vDist && vDist < 40) {
+          vDistMin = vDist;
+          closestWireIndex = i;
+        }
+      }
+
+      if (closestWireIndex != null) {
+        var wireXStart =
+          this.circuitRef.current.children[
+            closestWireIndex
+          ].getBoundingClientRect().x + 60;
+        var closestGateSlotIndex = Math.max(
+          Math.round((mouseX - wireXStart) / 30),
+          0
+        );
+        var gateIndex = Math.floor((closestGateSlotIndex - 1) / 2);
+        if (
+          closestGateSlotIndex % 2 === 1 &&
+          gateIndex < this.state.circuit.length &&
+          closestWireIndex < this.state.circuit[gateIndex].length &&
+          this.state.circuit[gateIndex][closestWireIndex] !== "S"
+        ) {
+          var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
+          if (occupiedSlotX > mouseX) {
+            return [closestWireIndex, closestGateSlotIndex - 1];
+          } else {
+            return [closestWireIndex, closestGateSlotIndex + 1];
+          }
+        } else {
+          return [closestWireIndex, closestGateSlotIndex];
+        }
+      } else {
+        return [null, null];
+      }
     }
   };
 
-  setGrabPosition = (mouseX, mouseY) => {
-    var indexes = this.getClosestWireGate(mouseX, mouseY);
+  setGrabPosition = (mouseX, mouseY, gateType) => {
+    var indexes = this.getClosestWireGate(mouseX, mouseY, gateType);
     if (indexes[0] != null && indexes[1] != null) {
-      this.setState({ grabX: this.getGateSlotXPos(indexes[1]) - 20 });
-      this.setState({ grabY: this.getWireYPos(indexes[0]) - 20 });
+      if (gateType === "E") {
+        this.setState({ grabX: this.getEyeWireXPos(indexes[1]) - 20 });
+        this.setState({ grabY: this.getEyeWireYPos() - 20 });
+      } else {
+        this.setState({ grabX: this.getGateSlotXPos(indexes[1]) - 20 });
+        this.setState({ grabY: this.getWireYPos(indexes[0]) - 20 });
+      }
     } else {
       this.setState({ grabX: mouseX - 20 });
       this.setState({ grabY: mouseY - 20 });
@@ -197,8 +234,12 @@ export default class App extends React.Component {
     return col;
   };
 
-  onMouseUp = event => {
-    var indexes = this.getClosestWireGate(event.pageX, event.pageY);
+  placeGate = event => {
+    var indexes = this.getClosestWireGate(
+      event.pageX,
+      event.pageY,
+      this.state.grabbedGate
+    );
     var circuit = this.state.circuit;
     var i, j, allSpace;
     if (
@@ -265,6 +306,36 @@ export default class App extends React.Component {
     }
 
     this.setState({ circuit: circuitTrimmed });
+  };
+
+  placeEye = event => {
+    var indexes = this.getClosestWireGate(
+      event.pageX,
+      event.pageY,
+      this.state.grabbedGate
+    );
+    if (
+      this.state.grabbedGate != null &&
+      indexes[0] != null &&
+      indexes[1] != null
+    ) {
+      var eyeArray = this.state.eyeArray;
+      while (eyeArray.length <= indexes[1]) {
+        eyeArray.push("S");
+      }
+      eyeArray[indexes[1]] = this.state.grabbedGate;
+      this.setState({ eyeArray: eyeArray });
+    }
+  };
+
+  onMouseUp = event => {
+    if (this.state.grabbedGate != null) {
+      if (this.state.grabbedGate !== "E") {
+        this.placeGate(event);
+      } else {
+        this.placeEye(event);
+      }
+    }
     this.setState({ grabbedGate: null });
   };
 
@@ -272,21 +343,29 @@ export default class App extends React.Component {
     this.setState({ mouseX: event.pageX });
     this.setState({ mouseY: event.pageY });
     if (this.state.grabbedGate != null) {
-      this.setGrabPosition(event.pageX, event.pageY);
+      this.setGrabPosition(event.pageX, event.pageY, this.state.grabbedGate);
     }
   };
 
   gateOnMouseDown = (mouseX, mouseY, gateType, rowIndex, colIndex) => {
     this.setState({ grabbedGate: gateType });
-    if (
-      colIndex < this.state.circuit.length &&
-      rowIndex < this.state.circuit[colIndex].length
-    ) {
-      var circuit = this.state.circuit
-      circuit[colIndex][rowIndex] = "S";
-      this.setState({ circuit: circuit });
+    if (gateType === "E") {
+      if (colIndex < this.state.eyeArray.length) {
+        var eyeArray = this.state.eyeArray;
+        eyeArray[colIndex] = "S";
+        this.setState({ eyeArray: eyeArray });
+      }
+    } else {
+      if (
+        colIndex < this.state.circuit.length &&
+        rowIndex < this.state.circuit[colIndex].length
+      ) {
+        var circuit = this.state.circuit;
+        circuit[colIndex][rowIndex] = "S";
+        this.setState({ circuit: circuit });
+      }
     }
-    this.setGrabPosition(mouseX, mouseY);
+    this.setGrabPosition(mouseX, mouseY, gateType);
   };
 
   clearCircuit = () => {
@@ -308,6 +387,10 @@ export default class App extends React.Component {
           <button onClick={this.clearCircuit}>Clear</button>
         </div>
         <div className="Toolbar">
+          <div className="Toolbar-section">
+            <div>Measurement</div>
+            <Gate onMouseDown={this.gateOnMouseDown} gateType="E" />
+          </div>
           <div className="Toolbar-section">
             <div>Control</div>
             <Gate onMouseDown={this.gateOnMouseDown} gateType="C" />
@@ -345,6 +428,35 @@ export default class App extends React.Component {
           </div>
         </div>
         <div className="Circuit-container">
+          <div className="QubitLine-container" ref={this.eyeLineRef}>
+            <div className="Eye-line-container">
+              <img draggable="false" src={Eye} className="Eye" alt="eye" />
+              <div
+                className="Eye-Line"
+                style={{
+                  borderStyle: "solid",
+                  borderWidth: 1,
+                  borderBottomWidth: 0,
+                  borderRadius: 1
+                }}
+              ></div>
+            </div>
+          </div>
+          <div className="Eyes-container">
+            {this.state.eyeArray.map((gate, colIndex) => {
+              return (
+                <div className="Gates-column-container" key={colIndex}>
+                  <Gate
+                    onMouseDown={this.gateOnMouseDown}
+                    gateType={gate}
+                    rowIndex={0}
+                    colIndex={colIndex}
+                    grabbedGate={false}
+                  />
+                </div>
+              );
+            })}
+          </div>
           <div className="QubitLine-container" ref={this.circuitRef}>
             {this.state.circuit[0].map((gates, index) => {
               return <QubitLine key={index} />;

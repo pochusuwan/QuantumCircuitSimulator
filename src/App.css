@@ -88,6 +88,7 @@
 }
 
 .Gates-container {
+  margin-top: 50px;
   margin-left: 100px;
   display: flex;
   flex-direction: row;
@@ -104,9 +105,10 @@
 }
 .Circuit-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   position: relative;
   margin-top: 10px;
+  width: 100%;
   
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
@@ -116,10 +118,8 @@
   user-select: none;
 }
 .QubitLine-container {
-  width: 100%;
   margin-left: 30px;
   margin-right: 30px;
-  background-color: aliceblue;
   
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
@@ -170,6 +170,59 @@
   height: 1px;
   color: black;
 
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Eye-line-container {
+  display:flex;
+  position: relative;
+  align-items: center;
+  height: 50px;
+  
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Eye {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-right: 5px;
+
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Eye-Line {
+  width: 100%;
+  align-self: center;
+  color: #0057E8;
+
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Eyes-container {
+  margin-left: 70px;
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  color: black;
+  z-index: 1;
+  
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
