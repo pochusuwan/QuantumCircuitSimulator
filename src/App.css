@@ -2,8 +2,6 @@
   text-align: center;
   color: #cc652a;
   cursor: auto;
-  width: 100vw;
-  height: 100vh;
 }
 .ButtonBar {
   padding-left: 70px;
@@ -18,8 +16,7 @@
   padding-left: 60px;
   padding-right: 50px;
   padding-top: 5px;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
+  padding-bottom: 5px;  
   height: fit-content;
   display: flex;
   flex-direction: row;
@@ -86,32 +83,68 @@
   height: 40px;
   margin-left: 10px;
   margin-right: 10px;
-}
-
-.Circuit {
-  margin-left: 20px;
-  margin-right: 20px;
-}
-.Wire-container {
-  position: relative;
-  height: 50px;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
-.Wire {
+
+.Gates-container {
+  margin-left: 100px;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  margin-left: 60px;
-  height: 100%;
-  margin-bottom: 5px;
+  position: absolute;
+  color: black;
+  z-index: 1;
+  
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Circuit-container {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  margin-top: 10px;
+  
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.QubitLine-container {
+  width: 100%;
+  margin-left: 30px;
+  margin-right: 30px;
+  background-color: aliceblue;
+  
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
 }
 .Line-container {
+  display:flex;
+  position: relative;
+  height: 50px;
+  
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+  user-select: none;
+}
+.Gates-column-container {
   display: flex;
-  width: 100%;
+  flex-direction: column;
   height: 100%;
-  top: 0%;
-  position: absolute;
-
+  
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */

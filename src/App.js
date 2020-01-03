@@ -67,7 +67,7 @@ class QubitLine extends React.Component {
         <div
           className="Line"
           style={{
-            borderStyle: this.props.dash == true ? "dashed" : "solid",
+            borderStyle: this.props.dash ? "dashed" : "solid",
             borderWidth: 1,
             borderBottomWidth: 0,
             borderRadius: 1
@@ -91,16 +91,18 @@ class Gate extends React.Component {
         alt={this.props.gateType}
         style={{
           cursor: this.props.grabbedGate != null ? "move" : "grab",
-          marginLeft: this.props.wireIndex == null ? 0 : 10,
-          marginRight: this.props.wireIndex == null ? 0 : 10
+          marginLeft: this.props.rowIndex == null ? 0 : 10,
+          marginRight: this.props.rowIndex == null ? 0 : 10,
+          marginTop: this.props.rowIndex == null ? 0 : 5,
+          marginBottom: this.props.rowIndex == null ? 0 : 5
         }}
         onMouseDown={event => {
           this.props.onMouseDown(
             event.pageX,
             event.pageY,
             this.props.gateType,
-            this.props.wireIndex,
-            this.props.gateIndex
+            this.props.rowIndex,
+            this.props.colIndex
           );
         }}
       />
@@ -117,7 +119,11 @@ export default class App extends React.Component {
       mouseY: 0,
       grabX: 0,
       grabY: 0,
-      circuit: [["X", "Y", "S", "Z"], ["X", "Y", "Z"], []]
+      circuit: [
+        ["X", "Y"],
+        ["X", "S"],
+        ["Y", "Z"]
+      ]
     };
     this.circuitRef = React.createRef();
   }
@@ -130,7 +136,7 @@ export default class App extends React.Component {
   };
 
   getGateSlotXPos = gateSlotIndex => {
-    return gateSlotIndex * 30 + 60 + 20;
+    return gateSlotIndex * 30 + 80 + 20;
   };
 
   getClosestWireGate = (mouseX, mouseY) => {
@@ -155,10 +161,10 @@ export default class App extends React.Component {
       );
       var gateIndex = Math.floor((closestGateSlotIndex - 1) / 2);
       if (
-        closestGateSlotIndex % 2 == 1 &&
-        gateIndex < this.state.circuit[closestWireIndex].length &&
-        this.state.circuit[closestWireIndex][gateIndex] != undefined &&
-        this.state.circuit[closestWireIndex][gateIndex] != "S"
+        closestGateSlotIndex % 2 === 1 &&
+        gateIndex < this.state.circuit.length &&
+        closestWireIndex < this.state.circuit[gateIndex].length &&
+        this.state.circuit[gateIndex][closestWireIndex] !== "S"
       ) {
         var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
         if (occupiedSlotX > mouseX) {
@@ -185,72 +191,80 @@ export default class App extends React.Component {
     }
   };
 
+  newGateColumn = length => {
+    var col = [];
+    for (var i = 0; i < length; i++) col.push("S");
+    return col;
+  };
+
   onMouseUp = event => {
     var indexes = this.getClosestWireGate(event.pageX, event.pageY);
-    console.log(indexes);
+    var circuit = this.state.circuit;
+    var i, j, allSpace;
     if (
       this.state.grabbedGate != null &&
       indexes[0] != null &&
-      indexes[1] != null &&
-      indexes[0] < this.state.circuit.length
+      indexes[1] != null
     ) {
-      var gateIndex = Math.floor(indexes[1] / 2);
-      while (this.state.circuit[indexes[0]].length <= gateIndex) {
-        this.state.circuit[indexes[0]].push("S");
+      var rowIndex = indexes[0];
+      var colIndex = Math.floor(indexes[1] / 2);
+      if (rowIndex >= circuit[0].length) {
+        for (i = 0; i < circuit.length; i++) {
+          circuit[i].push("S");
+        }
+        rowIndex = circuit[0].length - 1;
       }
-      if (this.state.circuit[indexes[0]][gateIndex] == "S") {
-        this.state.circuit[indexes[0]][gateIndex] = this.state.grabbedGate;
-      } else {
-        this.state.circuit[indexes[0]].splice(
-          gateIndex,
-          0,
-          this.state.grabbedGate
-        );
+
+      if (colIndex >= circuit.length) {
+        circuit.push(this.newGateColumn(circuit[0].length));
+        colIndex = circuit.length - 1;
+      } else if (circuit[colIndex][rowIndex] !== "S") {
+        circuit.push(this.newGateColumn(circuit[0].length));
+        for (i = circuit.length - 1; i > colIndex; i--) {
+          circuit[i][rowIndex] = circuit[i - 1][rowIndex];
+        }
       }
+      circuit[colIndex][rowIndex] = this.state.grabbedGate;
     }
 
-    var newCircuit = [];
-    var maxLength = 0;
-    var isEmpty = [];
-    for (var i = 0; i < this.state.circuit.length; i++) {
-      newCircuit.push([]);
-      if (maxLength < this.state.circuit[i].length) {
-        maxLength = this.state.circuit[i].length;
-      }
-      isEmpty.push(true);
-    }
-    for (var i = 0; i < maxLength; i++) {
-      var allSpace = true;
-      for (var j = 0; j < this.state.circuit.length; j++) {
-        if (
-          i < this.state.circuit[j].length &&
-          this.state.circuit[j][i] != "S"
-        ) {
+    var circuitTrimmed = [];
+    for (i = 0; i < circuit.length; i++) {
+      allSpace = true;
+      for (j = 0; j < circuit[i].length; j++) {
+        if (circuit[i][j] !== "S") {
           allSpace = false;
           break;
         }
       }
       if (!allSpace) {
-        for (var j = 0; j < this.state.circuit.length; j++) {
-          if (i < this.state.circuit[j].length) {
-            if (this.state.circuit[j][i] != "S") {
-              isEmpty[j] = false;
-            }
-            newCircuit[j].push(this.state.circuit[j][i]);
+        circuitTrimmed.push(circuit[i]);
+      }
+    }
+
+    if (circuitTrimmed.length > 0 && circuitTrimmed[0].length > 1) {
+      for (i = 0; i < circuitTrimmed[0].length; ) {
+        allSpace = true;
+        for (j = 0; j < circuitTrimmed.length; j++) {
+          if (circuitTrimmed[j][i] !== "S") {
+            allSpace = false;
+            break;
           }
+        }
+        if (allSpace) {
+          for (j = 0; j < circuitTrimmed.length; j++) {
+            circuitTrimmed[j].splice(i, 1);
+          }
+        } else {
+          i++;
         }
       }
     }
 
-    var newCircuit2 = [];
-    for (var j = 0; j < newCircuit.length; j++) {
-      if (!isEmpty[j]) {
-        newCircuit2.push(newCircuit[j]);
-      }
+    if (circuitTrimmed.length === 0 || circuitTrimmed[0].length === 0) {
+      circuitTrimmed = [this.newGateColumn(1)];
     }
-    newCircuit2.push([]);
 
-    this.setState({ circuit: newCircuit2 });
+    this.setState({ circuit: circuitTrimmed });
     this.setState({ grabbedGate: null });
   };
 
@@ -262,20 +276,22 @@ export default class App extends React.Component {
     }
   };
 
-  gateOnMouseDown = (mouseX, mouseY, gateType, wireIndex, gateIndex) => {
+  gateOnMouseDown = (mouseX, mouseY, gateType, rowIndex, colIndex) => {
     this.setState({ grabbedGate: gateType });
     if (
-      wireIndex < this.state.circuit.length &&
-      gateIndex < this.state.circuit[wireIndex].length
+      colIndex < this.state.circuit.length &&
+      rowIndex < this.state.circuit[colIndex].length
     ) {
-      this.state.circuit[wireIndex][gateIndex] = "S";
+      var circuit = this.state.circuit
+      circuit[colIndex][rowIndex] = "S";
+      this.setState({ circuit: circuit });
     }
     this.setGrabPosition(mouseX, mouseY);
   };
 
   clearCircuit = () => {
     this.setState({
-      circuit: [["X", "Y", "S", "Z"], ["X", "Y", "Z", "S", "S"], []]
+      circuit: [["S"]]
     });
   };
 
@@ -294,62 +310,67 @@ export default class App extends React.Component {
         <div className="Toolbar">
           <div className="Toolbar-section">
             <div>Control</div>
-            <Gate onMouseDown={this.gateOnMouseDown} gateType="C"></Gate>
+            <Gate onMouseDown={this.gateOnMouseDown} gateType="C" />
           </div>
           <div className="Toolbar-section">
             <div>Half Turns</div>
             <div className="Toolbar-gate-container">
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="X"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="Y"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="Z"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="H"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="X" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="Y" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="Z" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="H" />
             </div>
           </div>
           <div className="Toolbar-section">
             <div>Quarter Turns</div>
             <div className="Toolbar-gate-container">
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQ"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQ"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQ"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQN"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQN"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQ" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQ" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQ" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XQN" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YQN" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZQN" />
             </div>
           </div>
           <div className="Toolbar-section">
             <div>Eighth Turns</div>
             <div className="Toolbar-gate-container">
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="XE"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="YE"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZE"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="XEN"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="YEN"></Gate>
-              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZEN"></Gate>
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XE" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YE" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZE" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="XEN" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="YEN" />
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="ZEN" />
             </div>
           </div>
         </div>
-        <div className="Circuit" ref={this.circuitRef}>
-          {this.state.circuit.map((gates, wireIndex) => {
-            return (
-              <div className="Wire-container" key={wireIndex}>
-                <QubitLine dash={wireIndex == this.state.circuit.length - 1} />
-                <div className="Wire">
-                  {gates.map((gateType, gateIndex) => {
+        <div className="Circuit-container">
+          <div className="QubitLine-container" ref={this.circuitRef}>
+            {this.state.circuit[0].map((gates, index) => {
+              return <QubitLine key={index} />;
+            })}
+            <QubitLine dash={true} />
+          </div>
+          <div className="Gates-container">
+            {this.state.circuit.map((column, colIndex) => {
+              return (
+                <div className="Gates-column-container" key={colIndex}>
+                  {column.map((gate, rowIndex) => {
                     return (
                       <Gate
                         onMouseDown={this.gateOnMouseDown}
-                        gateType={gateType}
-                        key={gateIndex}
-                        wireIndex={wireIndex}
-                        gateIndex={gateIndex}
-                        grabbedGate={this.state.grabbedGate}
-                      ></Gate>
+                        gateType={gate}
+                        key={rowIndex}
+                        rowIndex={rowIndex}
+                        colIndex={colIndex}
+                        grabbedGate={false}
+                      />
                     );
                   })}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
         {this.state.grabbedGate != null ? (
           <img
@@ -362,7 +383,9 @@ export default class App extends React.Component {
             }}
           />
         ) : null}
-        <div>{this.state.mouseX + " " + this.state.mouseY}</div>
+        <div style={{ zIndex: 3, marginTop: 500 }}>
+          {this.state.mouseX + " " + this.state.mouseY}
+        </div>
       </div>
     );
   }
