@@ -1,7 +1,10 @@
 .App {
-  text-align: center;
-  color: #cc652a;
+  text-align: left;
+  color: black;
   cursor: auto;
+}
+.Hint {
+  margin-left: 50px;
 }
 .ButtonBar {
   padding-left: 70px;
@@ -16,7 +19,7 @@
   padding-left: 60px;
   padding-right: 50px;
   padding-top: 5px;
-  padding-bottom: 5px;  
+  padding-bottom: 5px;
   height: fit-content;
   display: flex;
   flex-direction: row;
@@ -95,7 +98,7 @@
   position: absolute;
   color: black;
   z-index: 1;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -109,7 +112,7 @@
   position: relative;
   margin-top: 10px;
   width: 100%;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -120,7 +123,7 @@
 .QubitLine-container {
   margin-left: 30px;
   margin-right: 30px;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -129,10 +132,10 @@
   user-select: none;
 }
 .Line-container {
-  display:flex;
+  display: flex;
   position: relative;
   height: 50px;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -144,7 +147,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -178,11 +181,11 @@
   user-select: none;
 }
 .Eye-line-container {
-  display:flex;
+  display: flex;
   position: relative;
   align-items: center;
   height: 50px;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -206,7 +209,7 @@
 .Eye-Line {
   width: 100%;
   align-self: center;
-  color: #0057E8;
+  color: #0057e8;
 
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
@@ -222,7 +225,7 @@
   position: absolute;
   color: black;
   z-index: 1;
-  
+
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
@@ -232,18 +235,21 @@
 }
 
 .Measurement-container {
+  text-align: center;
   display: flex;
   flex-direction: row;
+  width: fit-content;
   margin-left: 70px;
   margin-bottom: 10px;
 }
 .Measurement-column {
-  margin-left: 5px;
-  margin-right: 5px;
+  width: 70px;
   display: flex;
   flex-direction: column-reverse;
-  height: 75px;
+  height: 120px;
 }
 .Measurement-bar {
   background-color: red;
+  margin-left: 20px;
+  margin-right: 20px;
 }

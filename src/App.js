@@ -19,8 +19,6 @@ import Gate_Y_eighth_n from "./Gate-Y-eighth-negative.png";
 import Gate_Z_eighth_n from "./Gate-Z-eighth-negative.png";
 import Measure_Eye from "./Measure-eye.png";
 import Eye from "./eye.png";
-import Complex from "./Complex.js";
-import Matrix from "./Matrix.js";
 import QuantumCircuit from "./QuantumCircuit.js";
 
 const gateTypeToImg = gateType => {
@@ -118,17 +116,49 @@ class Gate extends React.Component {
 }
 
 class Measurement extends React.Component {
+  toBinary = num => {
+    var div = Math.floor(this.props.measurement.length / 2);
+    var res = "";
+    while (div > 0) {
+      res += Math.floor(num / div);
+      num = num % div;
+      div = Math.floor(div / 2);
+    }
+    return res;
+  };
   render() {
     return (
-      <div className="Measurement-container">
+      <div
+        className="Measurement-container"
+        style={{
+          borderStyle: "solid",
+          borderWidth: 1,
+          borderRadius: 1
+        }}
+      >
         {this.props.measurement.map((num, index) => {
           var mag = num.magnitude();
+          var prob = mag * mag;
           return (
             <div className="Measurement-column" key={index}>
-              <div>{num + ""}</div>
+              <div
+                style={{
+                  borderColor: "#000",
+                  borderStyle: "solid",
+                  borderWidth: 1,
+                  borderBottom: 0,
+                  borderLeft: 0,
+                  borderRight: 2,
+                  borderRadius: 1
+                }}
+              >
+                {this.toBinary(index)}
+              </div>
+              <div>{num+""}</div>
+              <div>{Math.round(prob * 100)}%</div>
               <div
                 className="Measurement-bar"
-                style={{ height: mag * mag * 50 }}
+                style={{ height: prob * 40 }}
               ></div>
             </div>
           );
@@ -417,6 +447,11 @@ export default class App extends React.Component {
         onMouseUp={this.onMouseUp}
         draggable="false"
       >
+        <div className="Hint">
+          Drag and drop gates to build circuit. Place measurements to view
+          quantum state at desired stage. Hover over placed gate to view gate
+          matrix.
+        </div>
         <div className="ButtonBar">
           <button onClick={this.clearCircuit}>Clear</button>
         </div>
