@@ -154,7 +154,7 @@ class Measurement extends React.Component {
               >
                 {this.toBinary(index)}
               </div>
-              <div>{num+""}</div>
+              <div>{num + ""}</div>
               <div>{Math.round(prob * 100)}%</div>
               <div
                 className="Measurement-bar"
@@ -173,8 +173,6 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       grabbedGate: null,
-      mouseX: 0,
-      mouseY: 0,
       grabX: 0,
       grabY: 0,
       circuit: [
@@ -401,8 +399,6 @@ export default class App extends React.Component {
   };
 
   onMouseMove = event => {
-    this.setState({ mouseX: event.pageX });
-    this.setState({ mouseY: event.pageY });
     if (this.state.grabbedGate != null) {
       this.setGrabPosition(event.pageX, event.pageY, this.state.grabbedGate);
     }
@@ -567,9 +563,6 @@ export default class App extends React.Component {
             }}
           />
         ) : null}
-        <div style={{ zIndex: 3, marginTop: 500 }}>
-          {this.state.mouseX + " " + this.state.mouseY}
-        </div>
       </div>
     );
   }

@@ -2,6 +2,8 @@
   text-align: left;
   color: black;
   cursor: auto;
+  display: flex;
+  flex-direction: column;
 }
 .Hint {
   margin-left: 50px;

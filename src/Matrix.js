@@ -45,5 +45,12 @@ export default class Matrix {
   };
 }
 Matrix.prototype.toString = function() {
-  return this.array + "";
+  var res = "-------\n";
+  for (var i = 0; i < this.array.length; i++) {
+    for (var j = 0; j < this.array[i].length; j++) {
+      res += this.array[i][j]+" "
+    }
+    res += "\n"
+  }
+  return res + "-------";
 };

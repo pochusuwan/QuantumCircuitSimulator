@@ -36,17 +36,23 @@ QuantumCircuit.simulate = (circuit, mArray) => {
 };
 
 QuantumCircuit.getGateColumn = gates => {
-  var matrix = null;
-  for (var i = 0; i < gates.length; i++) {
-    if (matrix == null) {
-      matrix = QuantumCircuit.getGate(gates[i]);
-    } else {
-      matrix = QuantumCircuit.tensorProduct(
-        matrix,
-        QuantumCircuit.getGate(gates[i])
-      );
+  console.log(gates);
+  var matrix = new Matrix([[Complex.one]]);
+  var i, j;
+  for (i = 0; i < gates.length; i++) {
+    matrix = QuantumCircuit.tensorProduct(
+      QuantumCircuit.getGate(gates[i]),
+      matrix
+    );
+  }
+  for (i = 0; i < matrix.array.length; i++) {
+    for (j = 0; j < matrix.array[i].length; j++) {
+      if (matrix.array[i][j] === Complex.controlTaint) {
+        matrix.array[i][j] = Complex.one;
+      }
     }
   }
+  console.log(matrix + "");
   return matrix;
 };
 
@@ -67,13 +73,37 @@ QuantumCircuit.tensorProduct = (m1, m2) => {
         for (j2 = 0; j2 < m2.array[i2].length; j2++) {
           newArray[i1 * m2.array.length + i2][
             j1 * m2.array[i2].length + j2
-          ] = m1.array[i1][j1].mult(m2.array[i2][j2]);
+          ] = QuantumCircuit.controlMult(
+            m1.array[i1][j1],
+            m2.array[i2][j2],
+            i1,
+            j1,
+            i2,
+            j2
+          );
         }
       }
     }
   }
-
   return new Matrix(newArray);
+};
+
+QuantumCircuit.controlMult = (c1, c2, i1, j1, i2, j2) => {
+  if (c1 === Complex.controlTaint) {
+    if (i2 === j2) {
+      return Complex.controlTaint;
+    } else {
+      return Complex.zero;
+    }
+  } else if (c2 === Complex.controlTaint) {
+    if (i1 === j1) {
+      return Complex.controlTaint;
+    } else {
+      return Complex.zero;
+    }
+  } else {
+    return c1.mult(c2);
+  }
 };
 
 QuantumCircuit.getGate = gateKey => {
