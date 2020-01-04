@@ -127,6 +127,7 @@ class Measurement extends React.Component {
     return res;
   };
   render() {
+    console.log(this.props.measurement);
     return (
       <div
         className="Measurement-container"
@@ -175,11 +176,7 @@ export default class App extends React.Component {
       grabbedGate: null,
       grabX: 0,
       grabY: 0,
-      circuit: [
-        ["X", "Y"],
-        ["X", "I"],
-        ["Y", "Z"]
-      ],
+      circuit: [["I"]],
       measurements: [],
       eyeArray: []
     };
