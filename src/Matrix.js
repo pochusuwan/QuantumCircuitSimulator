@@ -22,6 +22,27 @@ export default class Matrix {
     }
     return new Matrix(newArray);
   };
+
+  add = m => {
+    var newArray = [];
+    var i, j;
+    for (i = 0; i < this.array.length; i++) {
+      var row = [];
+      for (j = 0; j < this.array[i].length; j++) {
+        row.push(this.array[i][j].add(m.array[i][j]));
+      }
+      newArray.push(row);
+    }
+    return new Matrix(newArray);
+  };
+
+  unwrapState = () => {
+    var array = [];
+    for (var i = 0; i < this.array.length; i++) {
+      array.push(this.array[i][0]);
+    }
+    return array;
+  };
 }
 Matrix.prototype.toString = function() {
   return this.array + "";

@@ -230,3 +230,20 @@
   -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
   user-select: none;
 }
+
+.Measurement-container {
+  display: flex;
+  flex-direction: row;
+  margin-left: 70px;
+  margin-bottom: 10px;
+}
+.Measurement-column {
+  margin-left: 5px;
+  margin-right: 5px;
+  display: flex;
+  flex-direction: column-reverse;
+  height: 75px;
+}
+.Measurement-bar {
+  background-color: red;
+}

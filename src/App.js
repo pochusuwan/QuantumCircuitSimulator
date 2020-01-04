@@ -21,6 +21,7 @@ import Measure_Eye from "./Measure-eye.png";
 import Eye from "./eye.png";
 import Complex from "./Complex.js";
 import Matrix from "./Matrix.js";
+import QuantumCircuit from "./QuantumCircuit.js";
 
 const gateTypeToImg = gateType => {
   switch (gateType) {
@@ -116,6 +117,27 @@ class Gate extends React.Component {
   }
 }
 
+class Measurement extends React.Component {
+  render() {
+    return (
+      <div className="Measurement-container">
+        {this.props.measurement.map((num, index) => {
+          var mag = num.magnitude();
+          return (
+            <div className="Measurement-column" key={index}>
+              <div>{num + ""}</div>
+              <div
+                className="Measurement-bar"
+                style={{ height: mag * mag * 50 }}
+              ></div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+}
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -127,10 +149,11 @@ export default class App extends React.Component {
       grabY: 0,
       circuit: [
         ["X", "Y"],
-        ["X", "S"],
+        ["X", "I"],
         ["Y", "Z"]
       ],
-      eyeArray: ["E", "S", "E"]
+      measurements: [],
+      eyeArray: []
     };
     this.circuitRef = React.createRef();
     this.eyeLineRef = React.createRef();
@@ -195,7 +218,7 @@ export default class App extends React.Component {
           closestGateSlotIndex % 2 === 1 &&
           gateIndex < this.state.circuit.length &&
           closestWireIndex < this.state.circuit[gateIndex].length &&
-          this.state.circuit[gateIndex][closestWireIndex] !== "S"
+          this.state.circuit[gateIndex][closestWireIndex] !== "I"
         ) {
           var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
           if (occupiedSlotX > mouseX) {
@@ -230,7 +253,7 @@ export default class App extends React.Component {
 
   newGateColumn = length => {
     var col = [];
-    for (var i = 0; i < length; i++) col.push("S");
+    for (var i = 0; i < length; i++) col.push("I");
     return col;
   };
 
@@ -251,7 +274,7 @@ export default class App extends React.Component {
       var colIndex = Math.floor(indexes[1] / 2);
       if (rowIndex >= circuit[0].length) {
         for (i = 0; i < circuit.length; i++) {
-          circuit[i].push("S");
+          circuit[i].push("I");
         }
         rowIndex = circuit[0].length - 1;
       }
@@ -259,7 +282,7 @@ export default class App extends React.Component {
       if (colIndex >= circuit.length) {
         circuit.push(this.newGateColumn(circuit[0].length));
         colIndex = circuit.length - 1;
-      } else if (circuit[colIndex][rowIndex] !== "S") {
+      } else if (circuit[colIndex][rowIndex] !== "I") {
         circuit.push(this.newGateColumn(circuit[0].length));
         for (i = circuit.length - 1; i > colIndex; i--) {
           circuit[i][rowIndex] = circuit[i - 1][rowIndex];
@@ -272,7 +295,7 @@ export default class App extends React.Component {
     for (i = 0; i < circuit.length; i++) {
       allSpace = true;
       for (j = 0; j < circuit[i].length; j++) {
-        if (circuit[i][j] !== "S") {
+        if (circuit[i][j] !== "I") {
           allSpace = false;
           break;
         }
@@ -281,12 +304,11 @@ export default class App extends React.Component {
         circuitTrimmed.push(circuit[i]);
       }
     }
-
     if (circuitTrimmed.length > 0 && circuitTrimmed[0].length > 1) {
       for (i = 0; i < circuitTrimmed[0].length; ) {
         allSpace = true;
         for (j = 0; j < circuitTrimmed.length; j++) {
-          if (circuitTrimmed[j][i] !== "S") {
+          if (circuitTrimmed[j][i] !== "I") {
             allSpace = false;
             break;
           }
@@ -305,7 +327,7 @@ export default class App extends React.Component {
       circuitTrimmed = [this.newGateColumn(1)];
     }
 
-    this.setState({ circuit: circuitTrimmed });
+    return circuitTrimmed;
   };
 
   placeEye = event => {
@@ -321,7 +343,7 @@ export default class App extends React.Component {
     ) {
       var eyeArray = this.state.eyeArray;
       while (eyeArray.length <= indexes[1]) {
-        eyeArray.push("S");
+        eyeArray.push("I");
       }
       eyeArray[indexes[1]] = this.state.grabbedGate;
       this.setState({ eyeArray: eyeArray });
@@ -329,14 +351,23 @@ export default class App extends React.Component {
   };
 
   onMouseUp = event => {
+    var circuit = null;
     if (this.state.grabbedGate != null) {
       if (this.state.grabbedGate !== "E") {
-        this.placeGate(event);
+        circuit = this.placeGate(event);
       } else {
         this.placeEye(event);
       }
     }
+    var m = QuantumCircuit.simulate(
+      circuit != null ? circuit : this.state.circuit,
+      this.state.eyeArray
+    );
     this.setState({ grabbedGate: null });
+    this.setState({ measurements: m });
+    if (circuit != null) {
+      this.setState({ circuit: circuit });
+    }
   };
 
   onMouseMove = event => {
@@ -352,7 +383,7 @@ export default class App extends React.Component {
     if (gateType === "E") {
       if (colIndex < this.state.eyeArray.length) {
         var eyeArray = this.state.eyeArray;
-        eyeArray[colIndex] = "S";
+        eyeArray[colIndex] = "I";
         this.setState({ eyeArray: eyeArray });
       }
     } else {
@@ -361,7 +392,7 @@ export default class App extends React.Component {
         rowIndex < this.state.circuit[colIndex].length
       ) {
         var circuit = this.state.circuit;
-        circuit[colIndex][rowIndex] = "S";
+        circuit[colIndex][rowIndex] = "I";
         this.setState({ circuit: circuit });
       }
     }
@@ -370,7 +401,10 @@ export default class App extends React.Component {
 
   clearCircuit = () => {
     this.setState({
-      circuit: [["S"]]
+      circuit: [["I"]]
+    });
+    this.setState({
+      eyeArray: []
     });
   };
 
@@ -484,6 +518,9 @@ export default class App extends React.Component {
             })}
           </div>
         </div>
+        {this.state.measurements.map((states, index) => {
+          return <Measurement measurement={states} key={index} />;
+        })}
         {this.state.grabbedGate != null ? (
           <img
             draggable="false"
