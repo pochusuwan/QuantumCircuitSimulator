@@ -110,10 +110,34 @@ QuantumCircuit.getGate = gateKey => {
   switch (gateKey) {
     case "X":
       return Gate.X;
+    case "XQ":
+      return Gate.XQ;
+    case "XQN":
+      return Gate.XQN;
+    case "XE":
+      return Gate.XE;
+    case "XEN":
+      return Gate.XEN;
     case "Y":
       return Gate.Y;
+    case "YQ":
+      return Gate.YQ;
+    case "YQN":
+      return Gate.YQN;
+    case "YE":
+      return Gate.YE;
+    case "YEN":
+      return Gate.YEN;
     case "Z":
       return Gate.Z;
+    case "ZQ":
+      return Gate.ZQ;
+    case "ZQN":
+      return Gate.ZQN;
+    case "ZE":
+      return Gate.ZE;
+    case "ZEN":
+      return Gate.ZEN;
     case "H":
       return Gate.H;
     case "I":

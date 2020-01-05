@@ -245,7 +245,7 @@
   margin-bottom: 10px;
 }
 .Measurement-column {
-  width: 70px;
+  width: 100px;
   display: flex;
   flex-direction: column-reverse;
   height: 120px;
