@@ -17,11 +17,19 @@ export default class Complex {
   };
 }
 Complex.prototype.toString = function() {
-  var result = Math.round(this.re * 100) / 100;
-  if (this.im >= 0) {
-    result += " + " + Math.round(this.im * 100) / 100 + "i";
+  var result = "";
+  var re = Math.round(this.re * 100) / 100;
+  var im = Math.round(this.im * 100) / 100;
+  if (re === 0 && im === 0) {
+    result += 0;
+  } else if (re === 0) {
+    result += im + "i";
+  } else if (im === 0) {
+    result += re;
   } else {
-    result += " " + Math.round(this.im * 100) / 100 + "i";
+    result += re;
+    result += im >= 0 ? " + " : " - ";
+    result += Math.abs(im) + "i";
   }
   return result;
 };

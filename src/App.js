@@ -127,7 +127,6 @@ class Measurement extends React.Component {
     return res;
   };
   render() {
-    console.log(this.props.measurement);
     return (
       <div
         className="Measurement-container"
@@ -169,6 +168,56 @@ class Measurement extends React.Component {
   }
 }
 
+class GateMatrixDisplay extends React.Component {
+  render() {
+    var gateMatrix = this.props.gateMatrix;
+    var matrixString = null;
+    if (gateMatrix != null) {
+      var array = gateMatrix.array;
+      matrixString = [];
+      var i, j;
+      var width = array.length;
+      var row;
+      var maxLen;
+      var padding = "              ";
+      for(i=0;i<width;i++) {
+        row = [];
+        for(j=0;j<width;j++) {
+          row.push(array[i][j]+"");
+        }
+        matrixString.push(row);
+      }
+      for(i=0;i<width;i++) {
+        maxLen = 0;
+        for(j=0;j<width;j++) {
+          maxLen = Math.max(maxLen, matrixString[j][i].length);
+        }
+        for(j=0;j<width;j++) {
+          matrixString[j][i] = (padding + matrixString[j][i]).slice(-maxLen);
+        }
+      }
+    } else {
+      return null;
+    }
+    return (
+      <div className="Focused-column-container">
+        {matrixString != null
+          ? matrixString.map((row, index) => {
+              var text = "";
+              for (var i = 0; i < row.length; i++) {
+                text += row[i];
+                if (i < row.length-1) {
+                  text+= "  ";
+                }
+              }
+              return <div style={{ whiteSpace: "pre" }}>|{text + ""}|</div>;
+            })
+          : null}
+      </div>
+    );
+  }
+}
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -178,7 +227,9 @@ export default class App extends React.Component {
       grabY: 0,
       circuit: [["I"]],
       measurements: [],
-      eyeArray: []
+      eyeArray: [],
+      focusedColumn: 0,
+      focusedColumnMatrix: null
     };
     this.circuitRef = React.createRef();
     this.eyeLineRef = React.createRef();
@@ -290,6 +341,7 @@ export default class App extends React.Component {
     );
     var circuit = this.state.circuit;
     var i, j, allSpace;
+    var focusedColumn = this.state.focusedColumn;
     if (
       this.state.grabbedGate != null &&
       indexes[0] != null &&
@@ -314,6 +366,7 @@ export default class App extends React.Component {
         }
       }
       circuit[colIndex][rowIndex] = this.state.grabbedGate;
+      focusedColumn = colIndex;
     }
 
     var circuitTrimmed = [];
@@ -351,8 +404,10 @@ export default class App extends React.Component {
     if (circuitTrimmed.length === 0 || circuitTrimmed[0].length === 0) {
       circuitTrimmed = [this.newGateColumn(1)];
     }
-
-    return circuitTrimmed;
+    return [
+      Math.min(Math.max(focusedColumn, 0), circuitTrimmed.length - 1),
+      circuitTrimmed
+    ];
   };
 
   placeEye = event => {
@@ -377,22 +432,29 @@ export default class App extends React.Component {
 
   onMouseUp = event => {
     var circuit = null;
+    var focusedColumn = this.state.focusedColumn;
+    var res;
     if (this.state.grabbedGate != null) {
       if (this.state.grabbedGate !== "E") {
-        circuit = this.placeGate(event);
+        res = this.placeGate(event);
+        focusedColumn = res[0];
+        circuit = res[1];
       } else {
         this.placeEye(event);
       }
     }
-    var m = QuantumCircuit.simulate(
+    res = QuantumCircuit.simulate(
       circuit != null ? circuit : this.state.circuit,
-      this.state.eyeArray
+      this.state.eyeArray,
+      focusedColumn
     );
     this.setState({ grabbedGate: null });
-    this.setState({ measurements: m });
+    this.setState({ measurements: res[0] });
+    this.setState({ focusedColumnMatrix: res[1] });
     if (circuit != null) {
       this.setState({ circuit: circuit });
     }
+    this.setState({ focusedColumn: focusedColumn });
   };
 
   onMouseMove = event => {
@@ -417,6 +479,7 @@ export default class App extends React.Component {
         var circuit = this.state.circuit;
         circuit[colIndex][rowIndex] = "I";
         this.setState({ circuit: circuit });
+        this.setState({ focusedColumn: colIndex });
       }
     }
     this.setGrabPosition(mouseX, mouseY, gateType);
@@ -424,10 +487,11 @@ export default class App extends React.Component {
 
   clearCircuit = () => {
     this.setState({
-      circuit: [["I"]]
-    });
-    this.setState({
-      eyeArray: []
+      circuit: [["I"]],
+      eyeArray: [],
+      measurements: [],
+      focusedColumnMatrix: null,
+      focusedColumn: 0
     });
   };
 
@@ -442,8 +506,7 @@ export default class App extends React.Component {
       >
         <div className="Hint">
           Drag and drop gates to build circuit. Place measurements to view
-          quantum state at desired stage. Hover over placed gate to view gate
-          matrix.
+          quantum state at desired stage.
         </div>
         <div className="ButtonBar">
           <button onClick={this.clearCircuit}>Clear</button>
@@ -523,12 +586,21 @@ export default class App extends React.Component {
             {this.state.circuit[0].map((gates, index) => {
               return <QubitLine key={index} />;
             })}
-            <QubitLine dash={true} />
+            {this.state.circuit[0].length < 8 ? (
+              <QubitLine dash={true} />
+            ) : null}
           </div>
           <div className="Gates-container">
             {this.state.circuit.map((column, colIndex) => {
+              var focused =
+                !(column.length === 1 && column[0] === "I") &&
+                this.state.focusedColumn === colIndex;
               return (
-                <div className="Gates-column-container" key={colIndex}>
+                <div
+                  className="Gates-column-container"
+                  key={colIndex}
+                  style={{ backgroundColor: focused ? "#ffbb96" : null }}
+                >
                   {column.map((gate, rowIndex) => {
                     return (
                       <Gate
@@ -549,6 +621,7 @@ export default class App extends React.Component {
         {this.state.measurements.map((states, index) => {
           return <Measurement measurement={states} key={index} />;
         })}
+        <GateMatrixDisplay gateMatrix={this.state.focusedColumnMatrix} />
         {this.state.grabbedGate != null ? (
           <img
             draggable="false"

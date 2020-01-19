@@ -8,31 +8,34 @@ QuantumCircuit.controlTaint = () => {
   return "asd";
 };
 
-QuantumCircuit.simulate = (circuit, mArray) => {
+QuantumCircuit.simulate = (circuit, mArray, focusedColumn) => {
   var n = circuit[0].length;
   var stateArray = [[Complex.one]];
   var i;
   var gateMatrix;
 
   var measurements = [];
-
+  var focusedColumnMatrix = null
   for (i = 0; i < Math.pow(2, n) - 1; i++) stateArray.push([Complex.zero]);
   var state = new Matrix(stateArray);
 
   for (i = 0; i < circuit.length; i++) {
     gateMatrix = QuantumCircuit.getGateColumn(circuit[i]);
-    if (i < mArray.length && mArray[i] == "E") {
+    if (focusedColumn === i) {
+      focusedColumnMatrix = gateMatrix;
+    }
+    if (i < mArray.length && mArray[i] === "E") {
       measurements.push(state.unwrapState());
     }
     state = gateMatrix.mult(state);
   }
   while (i < mArray.length) {
-    if (mArray[i] == "E") {
+    if (mArray[i] === "E") {
       measurements.push(state.unwrapState());
     }
     i++;
   }
-  return measurements;
+  return [measurements, focusedColumnMatrix];
 };
 
 QuantumCircuit.getGateColumn = gates => {
@@ -61,7 +64,7 @@ QuantumCircuit.tensorProduct = (m1, m2) => {
   var row = null;
   var i1, j1, i2, j2;
   for (i1 = 0; i1 < m1.array.length * m2.array.length; i1++) {
-    var row = [];
+    row = [];
     for (j1 = 0; j1 < m1.array[0].length * m2.array[0].length; j1++) {
       row.push(0);
     }

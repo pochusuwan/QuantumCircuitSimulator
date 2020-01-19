@@ -255,3 +255,8 @@
   margin-left: 20px;
   margin-right: 20px;
 }
+.Focused-column-container {
+  font-family: Courier;
+  width: fit-content;
+  background-color: #ffbb96;
+}
