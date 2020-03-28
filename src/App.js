@@ -1,6 +1,7 @@
 import React from "react";
 import "./App.css";
 import Gate_control from "./Gate-control.png";
+import Gate_I from "./Gate-I.png";
 import Gate_X from "./Gate-X.png";
 import Gate_Y from "./Gate-Y.png";
 import Gate_Z from "./Gate-Z.png";
@@ -23,6 +24,8 @@ import QuantumCircuit from "./QuantumCircuit.js";
 
 const gateTypeToImg = gateType => {
   switch (gateType) {
+    case "I":
+      return Gate_I;
     case "X":
       return Gate_X;
     case "Y":
@@ -180,19 +183,19 @@ class GateMatrixDisplay extends React.Component {
       var row;
       var maxLen;
       var padding = "              ";
-      for(i=0;i<width;i++) {
+      for (i = 0; i < width; i++) {
         row = [];
-        for(j=0;j<width;j++) {
-          row.push(array[i][j]+"");
+        for (j = 0; j < width; j++) {
+          row.push(array[i][j] + "");
         }
         matrixString.push(row);
       }
-      for(i=0;i<width;i++) {
+      for (i = 0; i < width; i++) {
         maxLen = 0;
-        for(j=0;j<width;j++) {
+        for (j = 0; j < width; j++) {
           maxLen = Math.max(maxLen, matrixString[j][i].length);
         }
-        for(j=0;j<width;j++) {
+        for (j = 0; j < width; j++) {
           matrixString[j][i] = (padding + matrixString[j][i]).slice(-maxLen);
         }
       }
@@ -206,11 +209,11 @@ class GateMatrixDisplay extends React.Component {
               var text = "";
               for (var i = 0; i < row.length; i++) {
                 text += row[i];
-                if (i < row.length-1) {
-                  text+= "  ";
+                if (i < row.length - 1) {
+                  text += "  ";
                 }
               }
-              return <div style={{ whiteSpace: "pre" }}>|{text + ""}|</div>;
+              return <div style={{ whiteSpace: "pre" }} key={index}>|{text + ""}|</div>;
             })
           : null}
       </div>
@@ -225,7 +228,7 @@ export default class App extends React.Component {
       grabbedGate: null,
       grabX: 0,
       grabY: 0,
-      circuit: [["I"]],
+      circuit: [["S"]],
       measurements: [],
       eyeArray: [],
       focusedColumn: 0,
@@ -294,7 +297,7 @@ export default class App extends React.Component {
           closestGateSlotIndex % 2 === 1 &&
           gateIndex < this.state.circuit.length &&
           closestWireIndex < this.state.circuit[gateIndex].length &&
-          this.state.circuit[gateIndex][closestWireIndex] !== "I"
+          this.state.circuit[gateIndex][closestWireIndex] !== "S"
         ) {
           var occupiedSlotX = this.getGateSlotXPos(closestGateSlotIndex);
           if (occupiedSlotX > mouseX) {
@@ -329,7 +332,7 @@ export default class App extends React.Component {
 
   newGateColumn = length => {
     var col = [];
-    for (var i = 0; i < length; i++) col.push("I");
+    for (var i = 0; i < length; i++) col.push("S");
     return col;
   };
 
@@ -351,7 +354,7 @@ export default class App extends React.Component {
       var colIndex = Math.floor(indexes[1] / 2);
       if (rowIndex >= circuit[0].length) {
         for (i = 0; i < circuit.length; i++) {
-          circuit[i].push("I");
+          circuit[i].push("S");
         }
         rowIndex = circuit[0].length - 1;
       }
@@ -359,11 +362,8 @@ export default class App extends React.Component {
       if (colIndex >= circuit.length) {
         circuit.push(this.newGateColumn(circuit[0].length));
         colIndex = circuit.length - 1;
-      } else if (circuit[colIndex][rowIndex] !== "I") {
-        circuit.push(this.newGateColumn(circuit[0].length));
-        for (i = circuit.length - 1; i > colIndex; i--) {
-          circuit[i][rowIndex] = circuit[i - 1][rowIndex];
-        }
+      } else if (indexes[1] % 2 === 0) {
+        circuit.splice(colIndex, 0, this.newGateColumn(circuit[0].length));
       }
       circuit[colIndex][rowIndex] = this.state.grabbedGate;
       focusedColumn = colIndex;
@@ -373,7 +373,7 @@ export default class App extends React.Component {
     for (i = 0; i < circuit.length; i++) {
       allSpace = true;
       for (j = 0; j < circuit[i].length; j++) {
-        if (circuit[i][j] !== "I") {
+        if (circuit[i][j] !== "S") {
           allSpace = false;
           break;
         }
@@ -386,7 +386,7 @@ export default class App extends React.Component {
       for (i = 0; i < circuitTrimmed[0].length; ) {
         allSpace = true;
         for (j = 0; j < circuitTrimmed.length; j++) {
-          if (circuitTrimmed[j][i] !== "I") {
+          if (circuitTrimmed[j][i] !== "S") {
             allSpace = false;
             break;
           }
@@ -423,7 +423,7 @@ export default class App extends React.Component {
     ) {
       var eyeArray = this.state.eyeArray;
       while (eyeArray.length <= indexes[1]) {
-        eyeArray.push("I");
+        eyeArray.push("S");
       }
       eyeArray[indexes[1]] = this.state.grabbedGate;
       this.setState({ eyeArray: eyeArray });
@@ -468,7 +468,7 @@ export default class App extends React.Component {
     if (gateType === "E") {
       if (colIndex < this.state.eyeArray.length) {
         var eyeArray = this.state.eyeArray;
-        eyeArray[colIndex] = "I";
+        eyeArray[colIndex] = "S";
         this.setState({ eyeArray: eyeArray });
       }
     } else {
@@ -477,7 +477,7 @@ export default class App extends React.Component {
         rowIndex < this.state.circuit[colIndex].length
       ) {
         var circuit = this.state.circuit;
-        circuit[colIndex][rowIndex] = "I";
+        circuit[colIndex][rowIndex] = "S";
         this.setState({ circuit: circuit });
         this.setState({ focusedColumn: colIndex });
       }
@@ -487,7 +487,7 @@ export default class App extends React.Component {
 
   clearCircuit = () => {
     this.setState({
-      circuit: [["I"]],
+      circuit: [["S"]],
       eyeArray: [],
       measurements: [],
       focusedColumnMatrix: null,
@@ -519,6 +519,12 @@ export default class App extends React.Component {
           <div className="Toolbar-section">
             <div>Control</div>
             <Gate onMouseDown={this.gateOnMouseDown} gateType="C" />
+          </div>
+          <div className="Toolbar-section">
+            <div>Identity</div>
+            <div className="Toolbar-gate-container">
+              <Gate onMouseDown={this.gateOnMouseDown} gateType="I" />
+            </div>
           </div>
           <div className="Toolbar-section">
             <div>Half Turns</div>
@@ -593,7 +599,7 @@ export default class App extends React.Component {
           <div className="Gates-container">
             {this.state.circuit.map((column, colIndex) => {
               var focused =
-                !(column.length === 1 && column[0] === "I") &&
+                !(column.length === 1 && column[0] === "S") &&
                 this.state.focusedColumn === colIndex;
               return (
                 <div
