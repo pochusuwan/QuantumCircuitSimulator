@@ -8,15 +8,25 @@ QuantumCircuit.controlTaint = () => {
   return "asd";
 };
 
-QuantumCircuit.simulate = (circuit, mArray, focusedColumn) => {
+QuantumCircuit.simulate = (circuit, mArray, focusedColumn, initialState) => {
   var n = circuit[0].length;
-  var stateArray = [[Complex.one]];
+  var stateArray = [[Complex.zero]];
   var i;
   var gateMatrix;
 
   var measurements = [];
-  var focusedColumnMatrix = null
-  for (i = 0; i < Math.pow(2, n) - 1; i++) stateArray.push([Complex.zero]);
+  var focusedColumnMatrix = null;
+  for (i = 0; i < Math.pow(2, n) - 1; i++) {
+    stateArray.push([Complex.zero]);
+  }
+  var bitOn = 0;
+  var mult = 1;
+  for (i = 0; i < initialState.length; i++) {
+    bitOn += mult * initialState[i];
+    mult *= 2;
+  }
+  stateArray[bitOn][0] = Complex.one;
+
   var state = new Matrix(stateArray);
 
   for (i = 0; i < circuit.length; i++) {
@@ -38,7 +48,7 @@ QuantumCircuit.simulate = (circuit, mArray, focusedColumn) => {
   return [measurements, focusedColumnMatrix];
 };
 
-QuantumCircuit.getGateColumn = gates => {
+QuantumCircuit.getGateColumn = (gates) => {
   console.log(gates);
   var matrix = new Matrix([[Complex.one]]);
   var i, j;
@@ -109,7 +119,7 @@ QuantumCircuit.controlMult = (c1, c2, i1, j1, i2, j2) => {
   }
 };
 
-QuantumCircuit.getGate = gateKey => {
+QuantumCircuit.getGate = (gateKey) => {
   switch (gateKey) {
     case "X":
       return Gate.X;

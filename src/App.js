@@ -19,10 +19,11 @@ import Gate_X_eighth_n from "./Gate-X-eighth-negative.png";
 import Gate_Y_eighth_n from "./Gate-Y-eighth-negative.png";
 import Gate_Z_eighth_n from "./Gate-Z-eighth-negative.png";
 import Measure_Eye from "./Measure-eye.png";
+import Switch from "./Switch.png";
 import Eye from "./eye.png";
 import QuantumCircuit from "./QuantumCircuit.js";
 
-const gateTypeToImg = gateType => {
+const gateTypeToImg = (gateType) => {
   switch (gateType) {
     case "I":
       return Gate_I;
@@ -71,14 +72,38 @@ class QubitLine extends React.Component {
   render() {
     return (
       <div className="Line-container">
-        <div className="Qubit-initial">|0></div>
+        {this.props.dash ? (
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              marginRight: 10,
+              alignSelf: "center",
+            }}
+          />
+        ) : (
+          <img
+            src={Switch}
+            style={{
+              width: 20,
+              height: 20,
+              marginRight: 10,
+              alignSelf: "center",
+            }}
+            onClick={() => this.props.onSwap(this.props.row)}
+          />
+        )}
+
+        <div className="Qubit-initial">
+          {this.props.state === 1 ? "|1>" : "|0>"}
+        </div>
         <div
           className="Line"
           style={{
             borderStyle: this.props.dash ? "dashed" : "solid",
             borderWidth: 1,
             borderBottomWidth: 0,
-            borderRadius: 1
+            borderRadius: 1,
           }}
         ></div>
       </div>
@@ -102,9 +127,9 @@ class Gate extends React.Component {
           marginLeft: this.props.rowIndex == null ? 0 : 10,
           marginRight: this.props.rowIndex == null ? 0 : 10,
           marginTop: this.props.rowIndex == null ? 0 : 5,
-          marginBottom: this.props.rowIndex == null ? 0 : 5
+          marginBottom: this.props.rowIndex == null ? 0 : 5,
         }}
-        onMouseDown={event => {
+        onMouseDown={(event) => {
           this.props.onMouseDown(
             event.pageX,
             event.pageY,
@@ -119,7 +144,7 @@ class Gate extends React.Component {
 }
 
 class Measurement extends React.Component {
-  toBinary = num => {
+  toBinary = (num) => {
     var div = Math.floor(this.props.measurement.length / 2);
     var res = "";
     while (div > 0) {
@@ -136,7 +161,7 @@ class Measurement extends React.Component {
         style={{
           borderStyle: "solid",
           borderWidth: 1,
-          borderRadius: 1
+          borderRadius: 1,
         }}
       >
         {this.props.measurement.map((num, index) => {
@@ -152,16 +177,29 @@ class Measurement extends React.Component {
                   borderBottom: 0,
                   borderLeft: 0,
                   borderRight: 2,
-                  borderRadius: 1
+                  borderRadius: 1,
+                  fontSize: 12,
                 }}
               >
                 {this.toBinary(index)}
               </div>
-              <div>{num + ""}</div>
-              <div>{Math.round(prob * 100)}%</div>
+              <div
+                style={{
+                  fontSize: 12,
+                }}
+              >
+                {num + ""}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                }}
+              >
+                {Math.round(prob * 100)}%
+              </div>
               <div
                 className="Measurement-bar"
-                style={{ height: prob * 40 }}
+                style={{ height: prob * 40, fontSize: 12 }}
               ></div>
             </div>
           );
@@ -213,7 +251,11 @@ class GateMatrixDisplay extends React.Component {
                   text += "  ";
                 }
               }
-              return <div style={{ whiteSpace: "pre" }} key={index}>|{text + ""}|</div>;
+              return (
+                <div style={{ whiteSpace: "pre" }} key={index}>
+                  |{text + ""}|
+                </div>
+              );
             })
           : null}
       </div>
@@ -229,10 +271,11 @@ export default class App extends React.Component {
       grabX: 0,
       grabY: 0,
       circuit: [["S"]],
+      initialState: [0],
       measurements: [],
       eyeArray: [],
       focusedColumn: 0,
-      focusedColumnMatrix: null
+      focusedColumnMatrix: null,
     };
     this.circuitRef = React.createRef();
     this.eyeLineRef = React.createRef();
@@ -243,18 +286,18 @@ export default class App extends React.Component {
     return rect.y + rect.height / 2;
   };
 
-  getEyeWireXPos = gateSlotIndex => {
+  getEyeWireXPos = (gateSlotIndex) => {
     return gateSlotIndex * 60 + 80 + 20;
   };
 
-  getWireYPos = wireIndex => {
+  getWireYPos = (wireIndex) => {
     var rect = this.circuitRef.current.children[
       wireIndex
     ].getBoundingClientRect();
     return rect.y + rect.height / 2;
   };
 
-  getGateSlotXPos = gateSlotIndex => {
+  getGateSlotXPos = (gateSlotIndex) => {
     return gateSlotIndex * 30 + 80 + 20;
   };
 
@@ -330,13 +373,13 @@ export default class App extends React.Component {
     }
   };
 
-  newGateColumn = length => {
+  newGateColumn = (length) => {
     var col = [];
     for (var i = 0; i < length; i++) col.push("S");
     return col;
   };
 
-  placeGate = event => {
+  placeGate = (event) => {
     var indexes = this.getClosestWireGate(
       event.pageX,
       event.pageY,
@@ -406,11 +449,11 @@ export default class App extends React.Component {
     }
     return [
       Math.min(Math.max(focusedColumn, 0), circuitTrimmed.length - 1),
-      circuitTrimmed
+      circuitTrimmed,
     ];
   };
 
-  placeEye = event => {
+  placeEye = (event) => {
     var indexes = this.getClosestWireGate(
       event.pageX,
       event.pageY,
@@ -430,7 +473,8 @@ export default class App extends React.Component {
     }
   };
 
-  onMouseUp = event => {
+  onMouseUp = (event) => {
+    var newState = this.state.initialState;
     var circuit = null;
     var focusedColumn = this.state.focusedColumn;
     var res;
@@ -439,6 +483,17 @@ export default class App extends React.Component {
         res = this.placeGate(event);
         focusedColumn = res[0];
         circuit = res[1];
+
+        var initialState = this.state.initialState;
+        newState = [];
+        for (var i = 0; i < circuit[0].length; i++) {
+          if (i < initialState.length) {
+            newState.push(initialState[i]);
+          } else {
+            newState.push(0);
+          }
+        }
+        this.setState({ initialState: newState });
       } else {
         this.placeEye(event);
       }
@@ -446,7 +501,8 @@ export default class App extends React.Component {
     res = QuantumCircuit.simulate(
       circuit != null ? circuit : this.state.circuit,
       this.state.eyeArray,
-      focusedColumn
+      focusedColumn,
+      newState
     );
     this.setState({ grabbedGate: null });
     this.setState({ measurements: res[0] });
@@ -457,7 +513,7 @@ export default class App extends React.Component {
     this.setState({ focusedColumn: focusedColumn });
   };
 
-  onMouseMove = event => {
+  onMouseMove = (event) => {
     if (this.state.grabbedGate != null) {
       this.setGrabPosition(event.pageX, event.pageY, this.state.grabbedGate);
     }
@@ -490,9 +546,26 @@ export default class App extends React.Component {
       circuit: [["S"]],
       eyeArray: [],
       measurements: [],
+      initialState: [0],
       focusedColumnMatrix: null,
-      focusedColumn: 0
+      focusedColumn: 0,
     });
+  };
+
+  onStateClick = (row) => {
+    var initialState = this.state.initialState;
+    if (row < initialState.length) {
+      initialState[row] = 1 - initialState[row];
+    }
+    this.setState({ initialState: initialState });
+    var res = QuantumCircuit.simulate(
+      this.state.circuit,
+      this.state.eyeArray,
+      this.state.focusedColumn,
+      this.state.initialState
+    );
+    this.setState({ measurements: res[0] });
+    this.setState({ focusedColumnMatrix: res[1] });
   };
 
   render() {
@@ -568,7 +641,7 @@ export default class App extends React.Component {
                   borderStyle: "solid",
                   borderWidth: 1,
                   borderBottomWidth: 0,
-                  borderRadius: 1
+                  borderRadius: 1,
                 }}
               ></div>
             </div>
@@ -589,8 +662,15 @@ export default class App extends React.Component {
             })}
           </div>
           <div className="QubitLine-container" ref={this.circuitRef}>
-            {this.state.circuit[0].map((gates, index) => {
-              return <QubitLine key={index} />;
+            {this.state.initialState.map((state, index) => {
+              return (
+                <QubitLine
+                  key={index}
+                  row={index}
+                  onSwap={this.onStateClick}
+                  state={state}
+                />
+              );
             })}
             {this.state.circuit[0].length < 8 ? (
               <QubitLine dash={true} />
@@ -635,7 +715,7 @@ export default class App extends React.Component {
             className="Gate-grabbed"
             style={{
               top: this.state.grabY,
-              left: this.state.grabX
+              left: this.state.grabX,
             }}
           />
         ) : null}
