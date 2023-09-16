@@ -1,0 +1,16 @@
+.AppContainer {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.Header {
+    width: 100%;
+    height: 30px;
+    padding: 16px;
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
