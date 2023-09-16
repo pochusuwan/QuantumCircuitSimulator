@@ -1,26 +1,26 @@
 import React from "react";
 import "./App.css";
-import Gate_control from "./Gate-control.png";
-import Gate_I from "./Gate-I.png";
-import Gate_X from "./Gate-X.png";
-import Gate_Y from "./Gate-Y.png";
-import Gate_Z from "./Gate-Z.png";
-import Gate_H from "./Gate-H.png";
-import Gate_X_quarter from "./Gate-X-quarter.png";
-import Gate_Y_quarter from "./Gate-Y-quarter.png";
-import Gate_Z_quarter from "./Gate-Z-quarter.png";
-import Gate_X_quarter_n from "./Gate-X-quarter-negative.png";
-import Gate_Y_quarter_n from "./Gate-Y-quarter-negative.png";
-import Gate_Z_quarter_n from "./Gate-Z-quarter-negative.png";
-import Gate_X_eighth from "./Gate-X-eighth.png";
-import Gate_Y_eighth from "./Gate-Y-eighth.png";
-import Gate_Z_eighth from "./Gate-Z-eighth.png";
-import Gate_X_eighth_n from "./Gate-X-eighth-negative.png";
-import Gate_Y_eighth_n from "./Gate-Y-eighth-negative.png";
-import Gate_Z_eighth_n from "./Gate-Z-eighth-negative.png";
-import Measure_Eye from "./Measure-eye.png";
-import Switch from "./Switch.png";
-import Eye from "./eye.png";
+import Gate_control from "./res/Gate-control.png";
+import Gate_I from "./res/Gate-I.png";
+import Gate_X from "./res/Gate-X.png";
+import Gate_Y from "./res/Gate-Y.png";
+import Gate_Z from "./res/Gate-Z.png";
+import Gate_H from "./res/Gate-H.png";
+import Gate_X_quarter from "./res/Gate-X-quarter.png";
+import Gate_Y_quarter from "./res/Gate-Y-quarter.png";
+import Gate_Z_quarter from "./res/Gate-Z-quarter.png";
+import Gate_X_quarter_n from "./res/Gate-X-quarter-negative.png";
+import Gate_Y_quarter_n from "./res/Gate-Y-quarter-negative.png";
+import Gate_Z_quarter_n from "./res/Gate-Z-quarter-negative.png";
+import Gate_X_eighth from "./res/Gate-X-eighth.png";
+import Gate_Y_eighth from "./res/Gate-Y-eighth.png";
+import Gate_Z_eighth from "./res/Gate-Z-eighth.png";
+import Gate_X_eighth_n from "./res/Gate-X-eighth-negative.png";
+import Gate_Y_eighth_n from "./res/Gate-Y-eighth-negative.png";
+import Gate_Z_eighth_n from "./res/Gate-Z-eighth-negative.png";
+import Measure_Eye from "./res/Measure-eye.png";
+import Switch from "./res/Switch.png";
+import Eye from "./res/eye.png";
 import QuantumCircuit from "./QuantumCircuit.js";
 
 const gateTypeToImg = (gateType) => {
@@ -91,6 +91,7 @@ class QubitLine extends React.Component {
               alignSelf: "center",
             }}
             onClick={() => this.props.onSwap(this.props.row)}
+            alt={"flip"}
           />
         )}
 
@@ -717,6 +718,7 @@ export default class App extends React.Component {
               top: this.state.grabY,
               left: this.state.grabX,
             }}
+            alt="gate"
           />
         ) : null}
       </div>
