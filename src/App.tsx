@@ -18,7 +18,7 @@ export default function App() {
                 <button onClick={() => setApp(0)}>Quantum Circuit Simulator</button>
                 <button onClick={() => setApp(1)}>Electric Field Simulator</button>
             </div>
-            {content}
+            <div className={classes.ContentContainer}>{content}</div>
         </div>
     );
 }
