@@ -19,6 +19,29 @@ class Particle {
     }
 
     recordPostion(time: number) {
+        /**
+         * Sine
+         * velocity = amplitude * frequency * 2 * pi * cos(time);
+         */
+        const amplitude = 1;
+        const frequency = 1 / amplitude / 2 / Math.PI;
+        this.y = amplitude * Math.sin(frequency * time * 2 * Math.PI);
+
+        /**
+         * Linear
+         * velocity = 2 * frequency * amplitude
+         */
+        // const amplitude = 1;
+        // const frequency = 0.5;
+        // let y = frequency * 2 * time;
+        // if (y > 2) {
+        //     y = y % 2;
+        // }
+        // if (y > 1) {
+        //     y = 2 - y;
+        // }
+        // this.y = y * amplitude;
+
         this.positionHistory.push({
             time,
             x: this.x,
@@ -110,11 +133,12 @@ class Simulator {
     private intervalId: ReturnType<typeof setInterval> | null = null;
     private time = 0;
 
-    private scale = 100; // pixel per light second
+    private framePerSecond = 50;
+    private scale = 50; // pixel per light second
     private axisTickDensity = 1; // light second
-    private fieldPointDensity = 0.25; // light second
+    private fieldPointDensity = 0.5; // light second
 
-    private particles = [new Particle(1, 1), new Particle(-4, 1)];
+    private particles: Particle[] = [];
     private fieldPoints: FieldPoint[] = [];
 
     private draw() {
@@ -164,10 +188,10 @@ class Simulator {
             const fY = point.fY * 40;
             const longer = Math.max(Math.abs(fX), Math.abs(fY));
             let scale = 1;
-            if (longer > 20) {
+            if (longer > 40) {
+                scale = 40 / longer;
+            } else if (longer < 20) {
                 scale = 20 / longer;
-            } else if (longer < 10) {
-                scale = 10 / longer;
             }
 
             pnt.beginPath();
@@ -192,14 +216,16 @@ class Simulator {
                 this.fieldPoints.push(new FieldPoint(x, y));
             }
         }
+        this.particles.push(new Particle(0, 0));
 
+        const secPerFrame = 1 / this.framePerSecond;
         this.intervalId = setInterval(() => {
-            this.time += 0.1;
+            this.time += secPerFrame;
             for (const particle of this.particles) {
                 particle.recordPostion(this.time);
             }
             this.draw();
-        }, 100);
+        }, secPerFrame * 1000);
     }
 
     clearCanvas() {
