@@ -23,6 +23,8 @@ export default function App() {
                 <canvas ref={canvasRef} className={classes.Canvas} style={canvasStyle} onClick={(event) => console.log(event)} />
             </div>
             <div className={classes.Controls}>
+                <button onClick={() => simulator.setParticlePositionFunction("Sine")}>Sine</button>
+                <button onClick={() => simulator.setParticlePositionFunction("Triangle")}>Triangle</button>
                 <div>Distance Scale</div>
                 <div>Point density</div>
                 <div>Vector Scale</div>
