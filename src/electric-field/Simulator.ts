@@ -60,6 +60,9 @@ class FieldPoint {
 
     public fX: number = 0;
     public fY: number = 0;
+    public dfX: number = 0;
+    public dfY: number = 0;
+    public lastTime: number = 0;
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
@@ -71,8 +74,8 @@ class FieldPoint {
             this.particleTimeIndex.push(-1);
         }
 
-        this.fX = 0;
-        this.fY = 0;
+        let newfX = 0;
+        let newfY = 0;
         for (let index = 0; index < particles.length; index++) {
             const particle = particles[index];
             const result = this.getLatestPostionForParticle(time, index, particle);
@@ -80,12 +83,15 @@ class FieldPoint {
                 const { position, distanceSquared } = result;
                 const F = (particle.charge * FIELD_CONSTANT) / distanceSquared;
                 const distance = Math.sqrt(distanceSquared);
-                const fX = (F * (this.x - position.x)) / distance;
-                const fY = (F * (this.y - position.y)) / distance;
-                this.fX += fX;
-                this.fY += fY;
+                newfX += F * ((this.x - position.x) / distance);
+                newfY += F * ((this.y - position.y) / distance);
             }
         }
+        this.dfX = (newfX - this.fX) / (time - this.lastTime);
+        this.dfY = (newfY - this.fY) / (time - this.lastTime);
+        this.fX = newfX;
+        this.fY = newfY;
+        this.lastTime = time;
     }
 
     private getLatestPostionForParticle(time: number, particleIndex: number, particle: Particle): { position: PositionHistory; distanceSquared: number } | undefined {
@@ -180,23 +186,38 @@ class Simulator {
         pnt.stroke("#FFFFFF");
     }
 
+    private scaleFieldLine(x: number, y: number, max: number, min: number) {
+        const x2 = x * max;
+        const y2 = y * max;
+        const longer = Math.max(Math.abs(x2), Math.abs(y2));
+        let scale = 1;
+        if (longer > max) {
+            scale = max / longer;
+        } else if (longer < min) {
+            scale = min / longer;
+        }
+        return {
+            x: x2 * scale,
+            y: y2 * scale
+        }
+    }
+
     private drawField(pnt: Painter) {
         for (const point of this.fieldPoints) {
             point.calculateField(this.time, this.particles);
 
-            const fX = point.fX * 40;
-            const fY = point.fY * 40;
-            const longer = Math.max(Math.abs(fX), Math.abs(fY));
-            let scale = 1;
-            if (longer > 40) {
-                scale = 40 / longer;
-            } else if (longer < 20) {
-                scale = 20 / longer;
-            }
+            const staticField = this.scaleFieldLine(point.fX, -point.fY, 40, 20)
+            //const deltaField = this.scaleFieldLine(point.dfX, -point.dfY, 40, 20)
+
 
             pnt.beginPath();
-            pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), fX * scale, -fY * scale);
+            pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), staticField.x, staticField.y);
             pnt.stroke("#FFFFFF");
+            //pnt.beginPath();
+            //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), point.dfX * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)), -point.dfY * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)));
+            //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), deltaField.x, deltaField.y);
+            //pnt.stroke("#FF0000");
+
             pnt.beginPath();
             pnt.fillCircle(pnt.pX(point.x), pnt.pY(point.y), 1);
             pnt.fill("#FFFFFF");
