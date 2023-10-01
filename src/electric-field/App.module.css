@@ -20,3 +20,8 @@
     height: 200px;
     background-color: cornsilk;
 }
+
+.ControlsRow {
+    display: flex;
+    flex-direction: row;
+}

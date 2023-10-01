@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import classes from "./App.module.css";
-import { simulator } from "./Simulator";
+import { FieldRenderOption, simulator } from "./Simulator";
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,8 +23,28 @@ export default function App() {
                 <canvas ref={canvasRef} className={classes.Canvas} style={canvasStyle} onClick={(event) => console.log(event)} />
             </div>
             <div className={classes.Controls}>
-                <button onClick={() => simulator.setParticlePositionFunction("Sine")}>Sine</button>
-                <button onClick={() => simulator.setParticlePositionFunction("Triangle")}>Triangle</button>
+                <div className={classes.ControlsRow}>
+                    <button onClick={() => simulator.setParticlePositionFunction("Sine")}>Sine</button>
+                    <button onClick={() => simulator.setParticlePositionFunction("Triangle")}>Triangle</button>
+                </div>
+
+                <div className={classes.ControlsRow}>
+                    <div>Static field render option: </div>
+                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with min/max</button>
+                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
+                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
+                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
+                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
+                </div>
+
+                <div className={classes.ControlsRow}>
+                    <div>Delta field render option: </div>
+                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with MinMax</button>
+                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
+                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
+                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
+                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
+                </div>
                 <div>Distance Scale</div>
                 <div>Point density</div>
                 <div>Vector Scale</div>

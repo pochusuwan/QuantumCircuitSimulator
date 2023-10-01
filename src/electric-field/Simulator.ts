@@ -2,6 +2,53 @@ import { FieldPoint } from "./FieldPoint";
 import Painter from "./Painter";
 import { Particle } from "./Particle";
 
+export enum FieldRenderOption {
+    Hide = "Hide",
+    ConstantScalar = "Constant",
+    ConstantScalarMinMax = "Constant with MinMax",
+    ScaleWithDistance = "Scale with Distance",
+    ScaleWithDistanceSquared = "Scale with Distance Squared"
+}
+
+function scaleFieldVector(x: number, y: number, px: number, py: number, option: FieldRenderOption) {
+    if (option === FieldRenderOption.Hide) {
+        return undefined;
+    }
+    if (option === FieldRenderOption.ConstantScalar) {
+        return {
+            x: x * 40,
+            y: y * 40,
+        };
+    }
+    if (option === FieldRenderOption.ConstantScalarMinMax) {
+        const min = 10;
+        const max = 40;
+        const x2 = x * max;
+        const y2 = y * max;
+        const longer = Math.max(Math.abs(x2), Math.abs(y2));
+        let scale = 1;
+        if (longer > max) {
+            scale = max / longer;
+        } else if (longer < min) {
+            scale = min / longer;
+        }
+        return {
+            x: x2 * scale,
+            y: y2 * scale,
+        };
+    }
+    if (option === FieldRenderOption.ScaleWithDistance || option === FieldRenderOption.ScaleWithDistanceSquared) {
+        let d = Math.pow(px, 2) + Math.pow(py, 2);
+        if (option === FieldRenderOption.ScaleWithDistance) {
+            d = Math.sqrt(d);
+        }
+        return {
+            x: x * d * 160,
+            y: y * d * 160,
+        };
+    }
+}
+
 class Simulator {
     private painter: Painter | null = null;
     private canvasWidth = 0;
@@ -16,6 +63,8 @@ class Simulator {
     private scale = 50; // pixel per light second
     private axisTickDensity = 1; // light second
     private fieldPointDensity = 0.5; // light second
+    private staticFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
+    private deltaFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
 
     private particles: Particle[] = [];
     private fieldPoints: FieldPoint[] = [];
@@ -59,32 +108,22 @@ class Simulator {
         pnt.stroke("#FFFFFF");
     }
 
-    private scaleFieldLine(x: number, y: number, max: number, min: number) {
-        const x2 = x * max;
-        const y2 = y * max;
-        const longer = Math.max(Math.abs(x2), Math.abs(y2));
-        let scale = 1;
-        if (longer > max) {
-            scale = max / longer;
-        } else if (longer < min) {
-            scale = min / longer;
-        }
-        return {
-            x: x2 * scale,
-            y: y2 * scale,
-        };
-    }
-
     private drawField(pnt: Painter) {
         for (const point of this.fieldPoints) {
             point.calculateField(this.time, this.particles);
 
-            const staticField = this.scaleFieldLine(point.fX, -point.fY, 40, 10);
-            //const deltaField = this.scaleFieldLine(point.dfX, -point.dfY, 40, 20)
-
-            pnt.beginPath();
-            pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), staticField.x, staticField.y);
-            pnt.stroke("#FFFFFF");
+            const staticField = scaleFieldVector(point.fX, -point.fY, point.x, point.y, this.staticFieldRenderOption);
+            if (staticField) {
+                pnt.beginPath();
+                pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), staticField.x, staticField.y);
+                pnt.stroke("#FFFFFF");
+            }
+            const deltaField = scaleFieldVector(point.dfX, -point.dfY, point.x, point.y, this.deltaFieldRenderOption);
+            if (deltaField) {
+                pnt.beginPath();
+                pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), deltaField.x, deltaField.y);
+                pnt.stroke("#FF0000");
+            }
             //pnt.beginPath();
             //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), point.dfX * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)), -point.dfY * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)));
             //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), deltaField.x, deltaField.y);
@@ -125,6 +164,14 @@ class Simulator {
         for (const particle of this.particles) {
             particle.setPositionFunction(name);
         }
+    }
+
+    setStaticFieldRenderOption(option: FieldRenderOption) {
+        this.staticFieldRenderOption = option;
+    }
+
+    setDeltaFieldRenderOption(option: FieldRenderOption) {
+        this.deltaFieldRenderOption = option;
     }
 
     clearCanvas() {

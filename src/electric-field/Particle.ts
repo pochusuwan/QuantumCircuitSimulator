@@ -41,7 +41,7 @@ export class Particle {
              * velocity = 2 * frequency * amplitude
              */
             const amplitude = 1;
-            const frequency = 0.5;
+            const frequency = 0.25;
             let y = frequency * 2 * time;
             if (y > 2) {
                 y = y % 2;
