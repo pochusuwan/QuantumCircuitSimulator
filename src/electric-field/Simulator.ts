@@ -135,6 +135,20 @@ class Simulator {
         }
     }
 
+    private setFieldPoint() {
+        const painter = this.painter;
+        if (!painter) return;
+
+        this.fieldPoints = [];
+
+        const { left, right, top, bottom } = painter.getBoundary();
+        for (let x = Math.floor(left); x < right; x += this.fieldPointDensity) {
+            for (let y = Math.floor(bottom); y < top; y += this.fieldPointDensity) {
+                this.fieldPoints.push(new FieldPoint(x, y));
+            }
+        }
+    }
+
     setCanvas(canvas: HTMLCanvasElement) {
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
@@ -142,12 +156,7 @@ class Simulator {
         this.originY = Math.floor(this.canvasHeight / 2) + 0.5;
         this.painter = new Painter(canvas, this.originX, this.originY, this.scale);
 
-        const { left, right, top, bottom } = this.painter.getBoundary();
-        for (let x = Math.floor(left); x < right; x += this.fieldPointDensity) {
-            for (let y = Math.floor(bottom); y < top; y += this.fieldPointDensity) {
-                this.fieldPoints.push(new FieldPoint(x, y));
-            }
-        }
+        this.setFieldPoint();
         this.particles.push(new Particle(0, 0));
 
         const secPerFrame = 1 / this.framePerSecond;
@@ -172,6 +181,12 @@ class Simulator {
 
     setDeltaFieldRenderOption(option: FieldRenderOption) {
         this.deltaFieldRenderOption = option;
+    }
+
+    setRenderOption(pixelPerLightSecond: number) {
+        this.scale = pixelPerLightSecond;
+        this.painter?.setScale(this.scale);
+        this.setFieldPoint();
     }
 
     clearCanvas() {

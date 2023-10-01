@@ -6,6 +6,8 @@ export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasStyle = useSetCanvasSize(canvasRef, containerRef);
+    const [pixelPerLightSecond, setPixelPerLightSecond] = useState("50");
+    const updateTimeoutId = useRef<ReturnType<typeof setInterval> | null>(null)
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -16,6 +18,13 @@ export default function App() {
             simulator.clearCanvas();
         };
     }, []);
+
+    if (updateTimeoutId.current !== null) {
+        clearTimeout(updateTimeoutId.current)
+    }
+    updateTimeoutId.current = setTimeout(() => {
+        simulator.setRenderOption(parseInt(pixelPerLightSecond))
+    }, 1000)
 
     return (
         <div className={classes.AppContainer}>
@@ -45,7 +54,11 @@ export default function App() {
                     <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
                     <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
                 </div>
-                <div>Distance Scale</div>
+
+                <div className={classes.ControlsRow}>
+                    <div>Pixel per light second:</div>
+                    <input onChange={(event) => setPixelPerLightSecond(event.target.value)} value={pixelPerLightSecond} />
+                </div>
                 <div>Point density</div>
                 <div>Vector Scale</div>
                 <div>Refresh Rate</div>

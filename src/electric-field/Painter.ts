@@ -73,4 +73,8 @@ export default class Painter {
     sc(val: number) {
         return val * this.scale;
     }
+
+    setScale(scale: number) {
+        this.scale = scale;
+    }
 }
