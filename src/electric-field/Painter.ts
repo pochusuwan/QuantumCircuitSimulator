@@ -19,6 +19,7 @@ export default class Painter {
         this.originX = originX;
         this.originY = originY;
         this.scale = scale;
+        this.ctx.font = "18px serif";
     }
 
     fillBackground(color: string) {
@@ -72,6 +73,10 @@ export default class Painter {
 
     sc(val: number) {
         return val * this.scale;
+    }
+
+    drawText(text: string, x: number, y: number) {
+        this.ctx.fillText(text, x, y);
     }
 
     setScale(scale: number) {
