@@ -11,10 +11,12 @@ export class FieldPoint {
     public dfX: number = 0;
     public dfY: number = 0;
     public lastTime: number = 0;
-    constructor(x: number, y: number) {
+    public isDebug = false;
+    constructor(x: number, y: number, isDebug: boolean = false) {
         this.x = x;
         this.y = y;
         this.particleTimeIndex = [];
+        this.isDebug = isDebug;
     }
 
     calculateField(time: number, particles: Particle[]) {
@@ -37,9 +39,16 @@ export class FieldPoint {
         }
         this.dfX = (newfX - this.fX) / (time - this.lastTime);
         this.dfY = (newfY - this.fY) / (time - this.lastTime);
+        if (this.isDebug) {
+            console.log(`P: ${this.round(this.x)}\t${this.round(this.y)}\tX: ${this.round(this.fX)}\t${this.round(newfX)}\t${this.round(this.dfX)}\tY: ${this.round(this.fY)}\t${this.round(newfY)}\t${this.round(this.dfY)}`);
+        }
         this.fX = newfX;
         this.fY = newfY;
         this.lastTime = time;
+    }
+
+    private round(v: number) {
+        return Math.round(v * 1000) / 1000;
     }
 
     private getLatestPostionForParticle(time: number, particleIndex: number, particle: Particle): { position: PositionHistory; distanceSquared: number } | undefined {
