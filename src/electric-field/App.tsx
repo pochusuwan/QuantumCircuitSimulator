@@ -3,7 +3,7 @@ import classes from "./App.module.css";
 import Simulator, { FieldRenderOption } from "./Simulator";
 
 const INITIAL_PIXEL_PER_LIGHT_SECOND = 400;
-const INITIAL_LIGHT_SECOND_PER_FIELD_POINT = 0.05;
+const INITIAL_LIGHT_SECOND_PER_FIELD_POINT = 20;
 const INITIAL_STATIC_FIELD_SCALE = 10;
 const INITIAL_DELTA_FIELD_SCALE = 10;
 
@@ -11,17 +11,26 @@ export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasStyle = useSetCanvasSize(canvasRef, containerRef);
+
     const [pixelPerLightSecond, setPixelPerLightSecond] = useState<string>(INITIAL_PIXEL_PER_LIGHT_SECOND.toString());
-    const [lightSecondPerFieldPoint, setLightSecondPerFieldPoint] = useState<string>(INITIAL_LIGHT_SECOND_PER_FIELD_POINT.toString());
+    const [originPixelX, setOriginPixelX] = useState<string>("");
+    const [originPixelY, setOriginPixelY] = useState<string>("");
+
+    const [fieldPointPerLightSecond, setFieldPointPerLightSecond] = useState<string>(INITIAL_LIGHT_SECOND_PER_FIELD_POINT.toString());
     const [staticFieldScale, setStaticFieldScale] = useState<string>(INITIAL_STATIC_FIELD_SCALE.toString());
     const [deltaFieldScale, setDeltaFieldScale] = useState<string>(INITIAL_DELTA_FIELD_SCALE.toString());
+
     const updateTimeoutId = useRef<ReturnType<typeof setInterval> | null>(null);
     const simulatorRef = useRef<Simulator | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
-            simulatorRef.current = new Simulator(canvas, INITIAL_PIXEL_PER_LIGHT_SECOND, INITIAL_LIGHT_SECOND_PER_FIELD_POINT, INITIAL_STATIC_FIELD_SCALE, INITIAL_DELTA_FIELD_SCALE);
+            const originX = 0.1 * canvas.width;
+            const originY = 0.9 * canvas.height;
+            simulatorRef.current = new Simulator(canvas, originX, originY, INITIAL_PIXEL_PER_LIGHT_SECOND, INITIAL_LIGHT_SECOND_PER_FIELD_POINT, INITIAL_STATIC_FIELD_SCALE, INITIAL_DELTA_FIELD_SCALE);
+            setOriginPixelX(originX.toString());
+            setOriginPixelY(originY.toString());
         }
         return () => {
             simulatorRef.current?.clearCanvas();
@@ -32,7 +41,14 @@ export default function App() {
         clearTimeout(updateTimeoutId.current);
     }
     updateTimeoutId.current = setTimeout(() => {
-        simulatorRef.current?.setRenderOption(parseFloat(pixelPerLightSecond), parseFloat(lightSecondPerFieldPoint), parseFloat(staticFieldScale), parseFloat(deltaFieldScale));
+        simulatorRef.current?.setRenderOption(
+            parseFloat(originPixelX),
+            parseFloat(originPixelY),
+            parseFloat(pixelPerLightSecond),
+            parseFloat(fieldPointPerLightSecond),
+            parseFloat(staticFieldScale),
+            parseFloat(deltaFieldScale)
+        );
     }, 1000);
 
     return (
@@ -42,12 +58,25 @@ export default function App() {
             </div>
             <div className={classes.Controls}>
                 <div className={classes.ControlsRow}>
-                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Sine")}>Sine</button>
-                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Triangle")}>Triangle</button>
+                    <div>Render Options: </div>
+                </div>
+                <div className={classes.ControlsRow}>
+                    <div>Origin pixel: </div>
+                    <input onChange={(event) => setOriginPixelX(event.target.value)} value={originPixelX} />
+                    <input onChange={(event) => setOriginPixelY(event.target.value)} value={originPixelY} />
+                    <div>Pixel per light second:</div>
+                    <input onChange={(event) => setPixelPerLightSecond(event.target.value)} value={pixelPerLightSecond} />
+                </div>
+                <div className={classes.ControlsRow}></div>
+
+                <div className={classes.ControlsRow}>Field Render Options:</div>
+                <div className={classes.ControlsRow}>
+                    <div>Field point per light second:</div>
+                    <input onChange={(event) => setFieldPointPerLightSecond(event.target.value)} value={fieldPointPerLightSecond} />
                 </div>
 
                 <div className={classes.ControlsRow}>
-                    <div>Static field render option: </div>
+                    <div>Static field scale: </div>
                     <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with min/max</button>
                     <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
                     <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
@@ -57,7 +86,7 @@ export default function App() {
                 </div>
 
                 <div className={classes.ControlsRow}>
-                    <div>Delta field render option: </div>
+                    <div>Delta field scale: </div>
                     <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with MinMax</button>
                     <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
                     <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
@@ -65,17 +94,12 @@ export default function App() {
                     <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
                     <input onChange={(event) => setDeltaFieldScale(event.target.value)} value={deltaFieldScale} />
                 </div>
+                <div className={classes.ControlsRow}></div>
 
                 <div className={classes.ControlsRow}>
-                    <div>Pixel per light second:</div>
-                    <input onChange={(event) => setPixelPerLightSecond(event.target.value)} value={pixelPerLightSecond} />
+                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Sine")}>Sine</button>
+                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Triangle")}>Triangle</button>
                 </div>
-                <div className={classes.ControlsRow}>
-                    <div>Light second per field point:</div>
-                    <input onChange={(event) => setLightSecondPerFieldPoint(event.target.value)} value={lightSecondPerFieldPoint} />
-                </div>
-                <div>Point density</div>
-                <div>Vector Scale</div>
                 <div>Refresh Rate</div>
                 <div>Static vs Change</div>
                 <div>Create charge button</div>

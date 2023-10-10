@@ -79,6 +79,11 @@ export default class Painter {
         this.ctx.fillText(text, x, y);
     }
 
+    setOrigin(originX: number, originY: number) {
+        this.originX = originX;
+        this.originY = originY;
+    }
+
     setScale(scale: number) {
         this.scale = scale;
     }

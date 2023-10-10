@@ -51,20 +51,19 @@ function scaleFieldVector(x: number, y: number, px: number, py: number, option: 
 
 export default class Simulator {
     private painter: Painter | null = null;
-    private canvasWidth = 0;
-    private canvasHeight = 0;
-    private originX = 0;
-    private originY = 0;
 
     private intervalId: ReturnType<typeof setInterval> | null = null;
     private time = 0;
-
     private framePerSecond = 50;
-    private axisTickDensity = 1; // light second
+
     private pixelPerLightSecond: number;
-    private lightSecondPerFieldPoint: number; // light second
+
+    private axisTickDensity = 1; // light second
+
+    private fieldPointPerLightSecond: number;
     private staticFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
     private deltaFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
+
     private staticFieldScale: number;
     private deltaFieldScale: number;
     private measuredFPS = 0;
@@ -142,24 +141,29 @@ export default class Simulator {
         this.fieldPoints = [];
 
         const { left, right, top, bottom } = painter.getBoundary();
-        for (let x = Math.ceil(left/this.lightSecondPerFieldPoint) * this.lightSecondPerFieldPoint; x < right; x += this.lightSecondPerFieldPoint) {
-            for (let y = Math.ceil(bottom/this.lightSecondPerFieldPoint) * this.lightSecondPerFieldPoint; y < top; y += this.lightSecondPerFieldPoint) {
+        const lightSecondPerFieldPoint = 1 / this.fieldPointPerLightSecond;
+        for (let x = Math.ceil(left/lightSecondPerFieldPoint) * lightSecondPerFieldPoint; x < right; x += lightSecondPerFieldPoint) {
+            for (let y = Math.ceil(bottom/lightSecondPerFieldPoint) * lightSecondPerFieldPoint; y < top; y += lightSecondPerFieldPoint) {
                 this.fieldPoints.push(new FieldPoint(x, y));
             }
         }
     }
 
-    constructor(canvas: HTMLCanvasElement, pixelPerLightSecond: number, lightSecondPerFieldPoint: number, staticFieldScale: number, deltaFieldScale: number) {
+    constructor(
+        canvas: HTMLCanvasElement, 
+        originPixelX: number,
+        originPixelY: number,
+        pixelPerLightSecond: number, 
+        fieldPointPerLightSecond: number, 
+        staticFieldScale: number, 
+        deltaFieldScale: number
+    ) {
         this.pixelPerLightSecond = pixelPerLightSecond;
-        this.lightSecondPerFieldPoint = lightSecondPerFieldPoint;
+        this.fieldPointPerLightSecond = fieldPointPerLightSecond;
         this.staticFieldScale = staticFieldScale;
         this.deltaFieldScale = deltaFieldScale;
 
-        this.canvasWidth = canvas.width;
-        this.canvasHeight = canvas.height;
-        this.originX = Math.floor(this.canvasWidth / 2) + 0.5;
-        this.originY = Math.floor(this.canvasHeight / 2) + 0.5;
-        this.painter = new Painter(canvas, this.originX, this.originY, this.pixelPerLightSecond);
+        this.painter = new Painter(canvas, originPixelX, originPixelY, this.pixelPerLightSecond);
 
         this.setFieldPoint();
         this.particles.push(new Particle(0, 0));
@@ -194,11 +198,19 @@ export default class Simulator {
         this.deltaFieldRenderOption = option;
     }
 
-    setRenderOption(pixelPerLightSecond: number, lightSecondPerFieldPoint: number, staticFieldScale: number, deltaFieldScale: number) {
+    setRenderOption(
+        originPixelX: number,
+        originPixelY: number,
+        pixelPerLightSecond: number, 
+        fieldPointPerLightSecond: number, 
+        staticFieldScale: number, 
+        deltaFieldScale: number
+    ) {
         this.pixelPerLightSecond = pixelPerLightSecond;
-        this.lightSecondPerFieldPoint = lightSecondPerFieldPoint;
+        this.fieldPointPerLightSecond = fieldPointPerLightSecond;
         this.staticFieldScale = staticFieldScale;
         this.deltaFieldScale = deltaFieldScale;
+        this.painter?.setOrigin(originPixelX, originPixelY);
         this.painter?.setScale(this.pixelPerLightSecond);
         this.setFieldPoint();
     }
