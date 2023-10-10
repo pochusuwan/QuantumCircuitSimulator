@@ -1,44 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import classes from "./App.module.css";
-import { FieldRenderOption, simulator } from "./Simulator";
+import Simulator, { FieldRenderOption } from "./Simulator";
+
+const INITIAL_PIXEL_PER_LIGHT_SECOND = 400;
+const INITIAL_LIGHT_SECOND_PER_FIELD_POINT = 0.05;
+const INITIAL_STATIC_FIELD_SCALE = 10;
+const INITIAL_DELTA_FIELD_SCALE = 10;
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasStyle = useSetCanvasSize(canvasRef, containerRef);
-    const [pixelPerLightSecond, setPixelPerLightSecond] = useState("50");
-    const [lightSecondPerFieldPoint, setLightSecondPerFieldPoint] = useState("1");
-    const [staticFieldScale, setStaticFieldScale] = useState("40");
-    const [deltaFieldScale, setDeltaFieldScale] = useState("40");
-    const updateTimeoutId = useRef<ReturnType<typeof setInterval> | null>(null)
+    const [pixelPerLightSecond, setPixelPerLightSecond] = useState<string>(INITIAL_PIXEL_PER_LIGHT_SECOND.toString());
+    const [lightSecondPerFieldPoint, setLightSecondPerFieldPoint] = useState<string>(INITIAL_LIGHT_SECOND_PER_FIELD_POINT.toString());
+    const [staticFieldScale, setStaticFieldScale] = useState<string>(INITIAL_STATIC_FIELD_SCALE.toString());
+    const [deltaFieldScale, setDeltaFieldScale] = useState<string>(INITIAL_DELTA_FIELD_SCALE.toString());
+    const updateTimeoutId = useRef<ReturnType<typeof setInterval> | null>(null);
+    const simulatorRef = useRef<Simulator | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
-            simulator.setRenderOption(
-                parseFloat(pixelPerLightSecond), 
-                parseFloat(lightSecondPerFieldPoint),
-                parseFloat(staticFieldScale), 
-                parseFloat(deltaFieldScale)
-            )
-            simulator.setCanvas(canvas);
+            simulatorRef.current = new Simulator(canvas, INITIAL_PIXEL_PER_LIGHT_SECOND, INITIAL_LIGHT_SECOND_PER_FIELD_POINT, INITIAL_STATIC_FIELD_SCALE, INITIAL_DELTA_FIELD_SCALE);
         }
         return () => {
-            simulator.clearCanvas();
+            simulatorRef.current?.clearCanvas();
         };
     }, []);
 
     if (updateTimeoutId.current !== null) {
-        clearTimeout(updateTimeoutId.current)
+        clearTimeout(updateTimeoutId.current);
     }
     updateTimeoutId.current = setTimeout(() => {
-        simulator.setRenderOption(
-            parseFloat(pixelPerLightSecond), 
-            parseFloat(lightSecondPerFieldPoint),
-            parseFloat(staticFieldScale), 
-            parseFloat(deltaFieldScale)
-        )
-    }, 1000)
+        simulatorRef.current?.setRenderOption(parseFloat(pixelPerLightSecond), parseFloat(lightSecondPerFieldPoint), parseFloat(staticFieldScale), parseFloat(deltaFieldScale));
+    }, 1000);
 
     return (
         <div className={classes.AppContainer}>
@@ -47,27 +42,27 @@ export default function App() {
             </div>
             <div className={classes.Controls}>
                 <div className={classes.ControlsRow}>
-                    <button onClick={() => simulator.setParticlePositionFunction("Sine")}>Sine</button>
-                    <button onClick={() => simulator.setParticlePositionFunction("Triangle")}>Triangle</button>
+                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Sine")}>Sine</button>
+                    <button onClick={() => simulatorRef.current?.setParticlePositionFunction("Triangle")}>Triangle</button>
                 </div>
 
                 <div className={classes.ControlsRow}>
                     <div>Static field render option: </div>
-                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with min/max</button>
-                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
-                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
-                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
-                    <button onClick={() => simulator.setStaticFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
+                    <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with min/max</button>
+                    <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
+                    <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
+                    <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
+                    <button onClick={() => simulatorRef.current?.setStaticFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
                     <input onChange={(event) => setStaticFieldScale(event.target.value)} value={staticFieldScale} />
                 </div>
 
                 <div className={classes.ControlsRow}>
                     <div>Delta field render option: </div>
-                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with MinMax</button>
-                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
-                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
-                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
-                    <button onClick={() => simulator.setDeltaFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
+                    <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalarMinMax)}>Scalar with MinMax</button>
+                    <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ConstantScalar)}>Scalar</button>
+                    <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistance)}>Scale with distance from origin</button>
+                    <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.ScaleWithDistanceSquared)}>Scale with distance from origin squared</button>
+                    <button onClick={() => simulatorRef.current?.setDeltaFieldRenderOption(FieldRenderOption.Hide)}>Hide</button>
                     <input onChange={(event) => setDeltaFieldScale(event.target.value)} value={deltaFieldScale} />
                 </div>
 

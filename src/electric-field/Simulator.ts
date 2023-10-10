@@ -21,7 +21,7 @@ function scaleFieldVector(x: number, y: number, px: number, py: number, option: 
         };
     }
     if (option === FieldRenderOption.ConstantScalarMinMax) {
-        const min = scale/4;
+        const min = scale / 2;
         const max = scale;
         const x2 = x * max;
         const y2 = y * max;
@@ -49,7 +49,7 @@ function scaleFieldVector(x: number, y: number, px: number, py: number, option: 
     }
 }
 
-class Simulator {
+export default class Simulator {
     private painter: Painter | null = null;
     private canvasWidth = 0;
     private canvasHeight = 0;
@@ -61,12 +61,12 @@ class Simulator {
 
     private framePerSecond = 50;
     private axisTickDensity = 1; // light second
-    private pixelPerLightSecond = 50;
-    private lightSecondPerFieldPoint = 5; // light second
+    private pixelPerLightSecond: number;
+    private lightSecondPerFieldPoint: number; // light second
     private staticFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
     private deltaFieldRenderOption: FieldRenderOption = FieldRenderOption.ConstantScalarMinMax;
-    private staticFieldScale = 40;
-    private deltaFieldScale = 40;
+    private staticFieldScale: number;
+    private deltaFieldScale: number;
     private measuredFPS = 0;
 
     private particles: Particle[] = [];
@@ -128,10 +128,6 @@ class Simulator {
                 pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), deltaField.x, deltaField.y);
                 pnt.stroke("#FF0000");
             }
-            //pnt.beginPath();
-            //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), point.dfX * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)), -point.dfY * 4000 * (Math.pow(point.x, 2) + Math.pow(point.y, 2)));
-            //pnt.drawLine(pnt.pX(point.x), pnt.pY(point.y), deltaField.x, deltaField.y);
-            //pnt.stroke("#FF0000");
 
             pnt.beginPath();
             pnt.fillCircle(pnt.pX(point.x), pnt.pY(point.y), 1);
@@ -146,14 +142,19 @@ class Simulator {
         this.fieldPoints = [];
 
         const { left, right, top, bottom } = painter.getBoundary();
-        for (let x = Math.floor(left); x < right; x += this.lightSecondPerFieldPoint) {
-            for (let y = Math.floor(bottom); y < top; y += this.lightSecondPerFieldPoint) {
+        for (let x = Math.ceil(left/this.lightSecondPerFieldPoint) * this.lightSecondPerFieldPoint; x < right; x += this.lightSecondPerFieldPoint) {
+            for (let y = Math.ceil(bottom/this.lightSecondPerFieldPoint) * this.lightSecondPerFieldPoint; y < top; y += this.lightSecondPerFieldPoint) {
                 this.fieldPoints.push(new FieldPoint(x, y));
             }
         }
     }
 
-    setCanvas(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, pixelPerLightSecond: number, lightSecondPerFieldPoint: number, staticFieldScale: number, deltaFieldScale: number) {
+        this.pixelPerLightSecond = pixelPerLightSecond;
+        this.lightSecondPerFieldPoint = lightSecondPerFieldPoint;
+        this.staticFieldScale = staticFieldScale;
+        this.deltaFieldScale = deltaFieldScale;
+
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         this.originX = Math.floor(this.canvasWidth / 2) + 0.5;
@@ -174,7 +175,7 @@ class Simulator {
             this.draw();
 
             const now = Date.now();
-            this.measuredFPS = 1000/(now - lastTime);
+            this.measuredFPS = 1000 / (now - lastTime);
             lastTime = now;
         }, secPerFrame * 1000);
     }
@@ -208,4 +209,3 @@ class Simulator {
         }
     }
 }
-export const simulator = new Simulator();

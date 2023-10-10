@@ -33,7 +33,7 @@ export class Particle {
              * velocity = amplitude * frequency * 2 * pi * cos(time);
              */
             const amplitude = 0.05;
-            const frequency = 1 / amplitude / 2 / Math.PI;
+            const frequency = 1 / amplitude / 2 / Math.PI / 5;
             this.y = amplitude * Math.sin(frequency * time * 2 * Math.PI);
         } else if (this.positionFunction === "Triangle") {
             /**
@@ -41,7 +41,7 @@ export class Particle {
              * velocity = 2 * frequency * amplitude
              */
             const amplitude = 0.05;
-            const frequency = 1 / 2 / amplitude;
+            const frequency = 1 / 2 / amplitude / 5;
             let y = frequency * 2 * time;
             if (y > 2) {
                 y = y % 2;
